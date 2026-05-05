@@ -12,6 +12,7 @@ const PLATFORM_META: Record<Platform, { label: string; color: string }> = {
   leetcode:   { label: 'LeetCode',      color: 'var(--platform-leetcode)' },
   codeforces: { label: 'Codeforces',    color: 'var(--platform-codeforces)' },
   gfg:        { label: 'GeeksForGeeks', color: 'var(--platform-gfg)' },
+  codechef:   { label: 'CodeChef',      color: 'var(--platform-codechef)' },
 }
 
 interface Props {

@@ -19,6 +19,7 @@ const FIELDS: { key: keyof Usernames; platform: Platform; label: string; placeho
   { key: 'leetcode',   platform: 'leetcode',   label: 'LeetCode',      placeholder: 'username',  color: 'var(--platform-leetcode)' },
   { key: 'codeforces', platform: 'codeforces', label: 'Codeforces',    placeholder: 'handle',    color: 'var(--platform-codeforces)' },
   { key: 'gfg',        platform: 'gfg',        label: 'GeeksForGeeks', placeholder: 'username',  color: 'var(--platform-gfg)' },
+  { key: 'codechef',   platform: 'codechef',   label: 'CodeChef',      placeholder: 'handle',    color: 'var(--platform-codechef)' },
 ]
 
 export function SearchBar({ onSubmit }: Props) {
@@ -27,6 +28,7 @@ export function SearchBar({ onSubmit }: Props) {
     leetcode: parseAsString.withDefault(''),
     codeforces: parseAsString.withDefault(''),
     gfg: parseAsString.withDefault(''),
+    codechef: parseAsString.withDefault(''),
   }, { history: 'replace' })
 
   const hasAny = Object.values(values).some(v => v.trim() !== '')

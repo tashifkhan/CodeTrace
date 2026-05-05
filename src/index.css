@@ -87,6 +87,7 @@
   --platform-leetcode:   #ffa116;
   --platform-codeforces: #1f8ef1;
   --platform-gfg:        #2db55d;
+  --platform-codechef:   #5B4638;
 }
 
 @layer base {

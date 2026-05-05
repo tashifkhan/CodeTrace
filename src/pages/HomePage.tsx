@@ -11,6 +11,7 @@ import { GitHubCard } from '../components/GitHubCard'
 import { LeetCodeCard } from '../components/LeetCodeCard'
 import { CodeforcesCard } from '../components/CodeforcesCard'
 import { GFGCard } from '../components/GFGCard'
+import { CodeChefCard } from '../components/CodeChefCard'
 import { SummaryStrip } from '../components/SummaryStrip'
 
 export function HomePage() {
@@ -19,19 +20,21 @@ export function HomePage() {
     leetcode: parseAsString.withDefault(''),
     codeforces: parseAsString.withDefault(''),
     gfg: parseAsString.withDefault(''),
+    codechef: parseAsString.withDefault(''),
   }, { history: 'replace' })
 
   const [isSubmitted, setIsSubmitted] = useState(() => {
-    return !!(query.github || query.leetcode || query.codeforces || query.gfg)
+    return !!(query.github || query.leetcode || query.codeforces || query.gfg || query.codechef)
   })
 
   const usernames: Usernames | null = 
-    isSubmitted && (query.github || query.leetcode || query.codeforces || query.gfg)
+    isSubmitted && (query.github || query.leetcode || query.codeforces || query.gfg || query.codechef)
       ? {
           github: query.github,
           leetcode: query.leetcode,
           codeforces: query.codeforces,
-          gfg: query.gfg
+          gfg: query.gfg,
+          codechef: query.codechef
         }
       : null
 
@@ -117,6 +120,12 @@ export function HomePage() {
                   <GFGCard username={usernames.gfg} />
                 </PlatformCard>
               )}
+              {usernames.codechef && (
+                <PlatformCard platform="codechef" username={usernames.codechef} animIndex={4}
+                  detailLink={`/codechef/${usernames.codechef}`}>
+                  <CodeChefCard username={usernames.codechef} />
+                </PlatformCard>
+              )}
             </div>
 
             {/* API docs footer */}
@@ -127,6 +136,7 @@ export function HomePage() {
                 { name: 'LeetCode API', url: 'https://leetcode-stats.tashif.codes/docs' },
                 { name: 'Codeforces API', url: 'https://codeforces-stats.tashif.codes/docs' },
                 { name: 'GFG API', url: 'https://gfg-stats.tashif.codes/docs' },
+                { name: 'CodeChef API', url: 'https://codechef-stats-api-two.vercel.app/' },
               ].map(api => (
                 <Button key={api.name} variant="link" size="xs" asChild className="text-muted-foreground/50 hover:text-primary">
                   <a href={api.url} target="_blank" rel="noreferrer">

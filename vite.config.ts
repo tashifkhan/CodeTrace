@@ -12,6 +12,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/codeforces/, ''),
       },
+      '/api/codechef': {
+        target: 'https://codechef-stats-api-two.vercel.app',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/codechef/, ''),
+      },
     },
   },
   resolve: {

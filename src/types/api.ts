@@ -1,4 +1,4 @@
-export type Platform = 'github' | 'leetcode' | 'codeforces' | 'gfg';
+export type Platform = 'github' | 'leetcode' | 'codeforces' | 'gfg' | 'codechef';
 
 export interface ApiState<T> {
   data: T | null;
@@ -11,6 +11,7 @@ export interface Usernames {
   leetcode: string;
   codeforces: string;
   gfg: string;
+  codechef: string;
 }
 
 // ── GitHub ────────────────────────────────────────────────────────────────
@@ -283,4 +284,55 @@ export interface GFGHeatmapData {
   totalActiveDays: number;
   totalSubmissions: number;
   heatmap: GFGHeatmapEntry[];
+}
+
+// ── CodeChef ──────────────────────────────────────────────────────────────
+
+export interface CodeChefProfileData {
+  handle: string;
+  profile: {
+    profile: string | null;
+    name: string | null;
+    currentRating: number | null;
+    highestRating: number | null;
+    countryFlag: string | null;
+    countryName: string | null;
+    globalRank: number | null;
+    countryRank: number | null;
+    stars: string | null;
+  };
+}
+
+export interface CodeChefHeatmapEntry {
+  date: string; // "YYYY-M-D"
+  value: number;
+}
+
+export interface CodeChefHeatmapData {
+  handle: string;
+  heatMap: CodeChefHeatmapEntry[];
+}
+
+export interface CodeChefRatingEntry {
+  code: string;
+  getyear: string;
+  getmonth: string;
+  getday: string;
+  reason: string | null;
+  penalised_in: string | null;
+  rating: string;
+  rank: string;
+  name: string;
+  end_date: string;
+  color: string;
+}
+
+export interface CodeChefRatingData {
+  handle: string;
+  ratingData: CodeChefRatingEntry[];
+}
+
+export interface CodeChefDetailData extends CodeChefProfileData {
+  heatmap: CodeChefHeatmapData;
+  ratingHistory: CodeChefRatingData;
 }
