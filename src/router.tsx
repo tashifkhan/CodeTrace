@@ -1,4 +1,5 @@
 import { createRouter, createRoute, createRootRoute, Outlet } from '@tanstack/react-router'
+import { NuqsAdapter } from 'nuqs/adapters/tanstack-router'
 import { HomePage } from '@/pages/HomePage'
 import { GitHubPage } from '@/pages/GitHubPage'
 import { LeetCodePage } from '@/pages/LeetCodePage'
@@ -6,7 +7,11 @@ import { CodeforcesPage } from '@/pages/CodeforcesPage'
 import { GFGPage } from '@/pages/GFGPage'
 
 const rootRoute = createRootRoute({
-  component: () => <Outlet />,
+  component: () => (
+    <NuqsAdapter>
+      <Outlet />
+    </NuqsAdapter>
+  ),
 })
 
 export const indexRoute = createRoute({

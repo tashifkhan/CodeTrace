@@ -1,5 +1,6 @@
-import { useState, type FormEvent } from 'react'
+import { type FormEvent } from 'react'
 import { Search } from 'lucide-react'
+import { useQueryStates, parseAsString } from 'nuqs'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -9,7 +10,7 @@ import type { Usernames } from '../types/api'
 import type { Platform } from '../types/api'
 
 interface Props {
-  onSearch: (usernames: Usernames) => void
+  onSubmit: () => void
 }
 
 const FIELDS: { key: keyof Usernames; platform: Platform; label: string; placeholder: string; color: string }[] = [
@@ -19,20 +20,20 @@ const FIELDS: { key: keyof Usernames; platform: Platform; label: string; placeho
   { key: 'gfg',        platform: 'gfg',        label: 'GeeksForGeeks', placeholder: 'username',  color: 'var(--platform-gfg)' },
 ]
 
-export function SearchBar({ onSearch }: Props) {
-  const [values, setValues] = useState<Usernames>({ github: '', leetcode: '', codeforces: '', gfg: '' })
+export function SearchBar({ onSubmit }: Props) {
+  const [values, setValues] = useQueryStates({
+    github: parseAsString.withDefault(''),
+    leetcode: parseAsString.withDefault(''),
+    codeforces: parseAsString.withDefault(''),
+    gfg: parseAsString.withDefault(''),
+  }, { history: 'replace' })
 
   const hasAny = Object.values(values).some(v => v.trim() !== '')
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
     if (!hasAny) return
-    onSearch({
-      github:     values.github.trim(),
-      leetcode:   values.leetcode.trim(),
-      codeforces: values.codeforces.trim(),
-      gfg:        values.gfg.trim(),
-    })
+    onSubmit()
   }
 
   return (
@@ -53,7 +54,7 @@ export function SearchBar({ onSearch }: Props) {
                 </div>
                 <Input
                   value={values[key]}
-                  onChange={e => setValues(prev => ({ ...prev, [key]: e.target.value }))}
+                  onChange={e => setValues({ [key]: e.target.value })}
                   placeholder={placeholder}
                   autoComplete="off"
                   spellCheck={false}

@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
+import { useQueryStates, parseAsString } from 'nuqs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -13,7 +14,31 @@ import { GFGCard } from '../components/GFGCard'
 import { SummaryStrip } from '../components/SummaryStrip'
 
 export function HomePage() {
-  const [usernames, setUsernames] = useState<Usernames | null>(null)
+  const [query, setQuery] = useQueryStates({
+    github: parseAsString.withDefault(''),
+    leetcode: parseAsString.withDefault(''),
+    codeforces: parseAsString.withDefault(''),
+    gfg: parseAsString.withDefault(''),
+  }, { history: 'replace' })
+
+  const [isSubmitted, setIsSubmitted] = useState(() => {
+    return !!(query.github || query.leetcode || query.codeforces || query.gfg)
+  })
+
+  const usernames: Usernames | null = 
+    isSubmitted && (query.github || query.leetcode || query.codeforces || query.gfg)
+      ? {
+          github: query.github,
+          leetcode: query.leetcode,
+          codeforces: query.codeforces,
+          gfg: query.gfg
+        }
+      : null
+
+  const handleSearchAgain = () => {
+    setIsSubmitted(false)
+    setQuery(null)
+  }
 
   useEffect(() => {
     document.title = 'Coding Profile Stacker'
@@ -38,7 +63,7 @@ export function HomePage() {
 
         {!usernames ? (
           <div className="fade-in">
-            <SearchBar onSearch={setUsernames} />
+            <SearchBar onSubmit={() => setIsSubmitted(true)} />
             <p className="text-center text-[10px] font-mono text-muted-foreground/50 mt-4">
               Leave any field empty to skip that platform.
             </p>
@@ -50,7 +75,7 @@ export function HomePage() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setUsernames(null)}
+                onClick={handleSearchAgain}
                 className="font-mono text-xs text-muted-foreground hover:text-primary"
               >
                 <ArrowLeft data-icon="inline-start" />
