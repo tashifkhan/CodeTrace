@@ -1,11 +1,12 @@
 import { type FormEvent } from 'react'
 import { Search } from 'lucide-react'
 import { useQueryStates, parseAsString } from 'nuqs'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Card, CardContent } from '@/components/ui/card'
 import { PlatformIcon } from './PlatformIcon'
+import { HistoryInput } from './HistoryInput'
+import { addHistoryToStorage } from '../hooks/useInputHistory'
 import type { Usernames } from '../types/api'
 import type { Platform } from '../types/api'
 
@@ -33,6 +34,14 @@ export function SearchBar({ onSubmit }: Props) {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
     if (!hasAny) return
+
+    // Save history for any submitted fields
+    FIELDS.forEach(({ key, platform }) => {
+      if (values[key]) {
+        addHistoryToStorage(platform, values[key])
+      }
+    })
+
     onSubmit()
   }
 
@@ -52,13 +61,11 @@ export function SearchBar({ onSubmit }: Props) {
                     {label}
                   </span>
                 </div>
-                <Input
+                <HistoryInput
+                  platform={platform}
                   value={values[key]}
-                  onChange={e => setValues({ [key]: e.target.value })}
+                  onChange={val => setValues({ [key]: val })}
                   placeholder={placeholder}
-                  autoComplete="off"
-                  spellCheck={false}
-                  className="font-mono bg-muted/30 border-transparent focus-visible:bg-transparent transition-colors"
                 />
               </div>
               {i < FIELDS.length - 1 && <Separator />}
