@@ -1,4 +1,4 @@
-export type Platform = 'github' | 'leetcode' | 'codeforces' | 'gfg' | 'codechef';
+export type Platform = 'github' | 'leetcode' | 'codeforces' | 'gfg' | 'codechef' | 'hackerrank';
 
 export interface ApiState<T> {
   data: T | null;
@@ -12,6 +12,7 @@ export interface Usernames {
   codeforces: string;
   gfg: string;
   codechef: string;
+  hackerrank: string;
 }
 
 // ── GitHub ────────────────────────────────────────────────────────────────
@@ -335,4 +336,91 @@ export interface CodeChefRatingData {
 export interface CodeChefDetailData extends CodeChefProfileData {
   heatmap: CodeChefHeatmapData;
   ratingHistory: CodeChefRatingData;
+}
+
+// ── HackerRank ────────────────────────────────────────────────────────────
+
+export interface HackerRankData {
+  status: string;
+  message: string;
+  totalSolved: number;
+  totalQuestions: number;
+  easySolved: number;
+  totalEasy: number;
+  mediumSolved: number;
+  totalMedium: number;
+  hardSolved: number;
+  totalHard: number;
+  acceptanceRate: number;
+  ranking: number;
+  contributionPoints: number;
+  reputation: number;
+  submissionCalendar: Record<string, number>;
+}
+
+export interface HackerRankProfile {
+  realName: string;
+  userAvatar: string;
+  birthday: string;
+  ranking: number;
+  reputation: number;
+  websites: string[];
+  countryName: string;
+  company: string;
+  school: string;
+  skillTags: string[];
+  aboutMe: string;
+  starRating: number;
+}
+
+export interface HackerRankContest {
+  attended: boolean;
+  rating: number;
+  ranking: number;
+  trendDirection: string;
+  problemsSolved: number;
+  totalProblems: number;
+  finishTimeInSeconds: number;
+  contest: { title: string; startTime: number };
+}
+
+export interface HackerRankBadge {
+  id: string;
+  displayName: string;
+  icon: string;
+  creationDate: number;
+}
+
+export interface HackerRankDetailData extends HackerRankData {
+  profile: HackerRankProfile | null;
+  contestInfo: {
+    attendedContestsCount: number;
+    rating: number;
+    globalRanking: number;
+    totalParticipants: number;
+    topPercentage: number;
+    badge: { name: string } | null;
+    contestHistory: HackerRankContest[];
+  } | null;
+  badges: HackerRankBadge[];
+  upcomingBadges: Array<{ name: string; icon: string }>;
+}
+
+export interface HackerRankHeatmapData {
+  status: string;
+  message: string;
+  username: string;
+  startDate: string;
+  endDate: string;
+  totalSubmissions: number;
+  activeDays: number;
+  currentStreak: number;
+  longestStreak: number;
+  maxDailySubmissions: number;
+  dailyContributions: Array<{
+    date: string;
+    timestamp: number;
+    count: number;
+    level: number;
+  }>;
 }

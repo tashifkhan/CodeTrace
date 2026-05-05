@@ -13,6 +13,7 @@ const PLATFORM_META: Record<Platform, { label: string; color: string }> = {
   codeforces: { label: 'Codeforces',    color: 'var(--platform-codeforces)' },
   gfg:        { label: 'GeeksForGeeks', color: 'var(--platform-gfg)' },
   codechef:   { label: 'CodeChef',      color: 'var(--platform-codechef)' },
+  hackerrank: { label: 'HackerRank',    color: 'var(--platform-hackerrank)' },
 }
 
 interface Props {

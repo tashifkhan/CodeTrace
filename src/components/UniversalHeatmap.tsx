@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import type { GitHubContributions, LeetCodeHeatmapData } from '../types/api';
+import type { GitHubContributions, LeetCodeHeatmapData, HackerRankHeatmapData } from '../types/api';
 
 interface Props {
   // Pass one of the three data types
   calendar?: Record<string, number>;
   githubContributions?: GitHubContributions;
   leetcodeHeatmap?: LeetCodeHeatmapData;
+  hackerrankHeatmap?: HackerRankHeatmapData;
 
   // Overrides for header stats
   totalSubmissions?: number;
@@ -34,6 +35,7 @@ export function UniversalHeatmap({
   calendar,
   githubContributions,
   leetcodeHeatmap,
+  hackerrankHeatmap,
   totalSubmissions: propTotal,
   activeDays: propActiveDays,
   maxStreak: propMaxStreak,
@@ -89,6 +91,11 @@ export function UniversalHeatmap({
         for (const day of leetcodeHeatmap.dailyContributions) {
           lookupCalendar[day.date] = day.count;
         }
+      } else if (hackerrankHeatmap) {
+        lookupCalendar = {};
+        for (const day of hackerrankHeatmap.dailyContributions) {
+          lookupCalendar[day.date] = day.count;
+        }
       }
 
       for (let i = 51 * 7 + 6; i >= 0; i--) {
@@ -126,12 +133,12 @@ export function UniversalHeatmap({
       computedActive: active,
       computedStreak: maxStreak
     };
-  }, [calendar, githubContributions, leetcodeHeatmap, selectedYear]);
+  }, [calendar, githubContributions, leetcodeHeatmap, hackerrankHeatmap, selectedYear]);
 
   // Use provided stats (e.g. from leetcodeHeatmap) or compute from visible data
-  const total = propTotal ?? (leetcodeHeatmap ? leetcodeHeatmap.totalSubmissions : computedTotal);
-  const activeDays = propActiveDays ?? (leetcodeHeatmap ? leetcodeHeatmap.activeDays : computedActive);
-  const maxStreak = propMaxStreak ?? (leetcodeHeatmap ? leetcodeHeatmap.longestStreak : computedStreak);
+  const total = propTotal ?? (leetcodeHeatmap ? leetcodeHeatmap.totalSubmissions : (hackerrankHeatmap ? hackerrankHeatmap.totalSubmissions : computedTotal));
+  const activeDays = propActiveDays ?? (leetcodeHeatmap ? leetcodeHeatmap.activeDays : (hackerrankHeatmap ? hackerrankHeatmap.activeDays : computedActive));
+  const maxStreak = propMaxStreak ?? (leetcodeHeatmap ? leetcodeHeatmap.longestStreak : (hackerrankHeatmap ? hackerrankHeatmap.longestStreak : computedStreak));
 
   const monthLabels = useMemo(() => {
     const labels: { label: string; col: number }[] = [];

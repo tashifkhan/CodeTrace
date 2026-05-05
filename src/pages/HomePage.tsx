@@ -12,6 +12,7 @@ import { LeetCodeCard } from '../components/LeetCodeCard'
 import { CodeforcesCard } from '../components/CodeforcesCard'
 import { GFGCard } from '../components/GFGCard'
 import { CodeChefCard } from '../components/CodeChefCard'
+import { HackerRankCard } from '../components/HackerRankCard'
 import { SummaryStrip } from '../components/SummaryStrip'
 
 export function HomePage() {
@@ -21,20 +22,22 @@ export function HomePage() {
     codeforces: parseAsString.withDefault(''),
     gfg: parseAsString.withDefault(''),
     codechef: parseAsString.withDefault(''),
+    hackerrank: parseAsString.withDefault(''),
   }, { history: 'replace' })
 
   const [isSubmitted, setIsSubmitted] = useState(() => {
-    return !!(query.github || query.leetcode || query.codeforces || query.gfg || query.codechef)
+    return !!(query.github || query.leetcode || query.codeforces || query.gfg || query.codechef || query.hackerrank)
   })
 
   const usernames: Usernames | null = 
-    isSubmitted && (query.github || query.leetcode || query.codeforces || query.gfg || query.codechef)
+    isSubmitted && (query.github || query.leetcode || query.codeforces || query.gfg || query.codechef || query.hackerrank)
       ? {
           github: query.github,
           leetcode: query.leetcode,
           codeforces: query.codeforces,
           gfg: query.gfg,
-          codechef: query.codechef
+          codechef: query.codechef,
+          hackerrank: query.hackerrank
         }
       : null
 
@@ -60,7 +63,7 @@ export function HomePage() {
             </span>
           </h1>
           <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
-            Aggregate your coding footprint across GitHub, LeetCode, Codeforces, and GeeksForGeeks.
+            Aggregate your coding footprint across GitHub, LeetCode, Codeforces, GFG, CodeChef, and HackerRank.
           </p>
         </header>
 
@@ -126,6 +129,12 @@ export function HomePage() {
                   <CodeChefCard username={usernames.codechef} />
                 </PlatformCard>
               )}
+              {usernames.hackerrank && (
+                <PlatformCard platform="hackerrank" username={usernames.hackerrank} animIndex={5}
+                  detailLink={`/hackerrank/${usernames.hackerrank}`}>
+                  <HackerRankCard username={usernames.hackerrank} />
+                </PlatformCard>
+              )}
             </div>
 
             {/* API docs footer */}
@@ -137,6 +146,7 @@ export function HomePage() {
                 { name: 'Codeforces API', url: 'https://codeforces-stats.tashif.codes/docs' },
                 { name: 'GFG API', url: 'https://gfg-stats.tashif.codes/docs' },
                 { name: 'CodeChef API', url: 'https://codechef-stats-api-two.vercel.app/' },
+                { name: 'HackerRank API', url: 'https://hackerrank-stats-api.vercel.app/docs' },
               ].map(api => (
                 <Button key={api.name} variant="link" size="xs" asChild className="text-muted-foreground/50 hover:text-primary">
                   <a href={api.url} target="_blank" rel="noreferrer">

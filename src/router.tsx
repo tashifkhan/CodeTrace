@@ -6,6 +6,7 @@ import { LeetCodePage } from '@/pages/LeetCodePage'
 import { CodeforcesPage } from '@/pages/CodeforcesPage'
 import { GFGPage } from '@/pages/GFGPage'
 import { CodeChefPage } from '@/pages/CodeChefPage'
+import { HackerRankPage } from '@/pages/HackerRankPage'
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -51,6 +52,12 @@ export const codechefRoute = createRoute({
   component: CodeChefPage,
 })
 
+export const hackerrankRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/hackerrank/$username',
+  component: HackerRankPage,
+})
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   githubRoute,
@@ -58,6 +65,7 @@ const routeTree = rootRoute.addChildren([
   codeforcesRoute,
   gfgRoute,
   codechefRoute,
+  hackerrankRoute,
 ])
 
 export const router = createRouter({ routeTree })

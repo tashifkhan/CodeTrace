@@ -88,6 +88,7 @@
   --platform-codeforces: #1f8ef1;
   --platform-gfg:        #2db55d;
   --platform-codechef:   #5B4638;
+  --platform-hackerrank: #2ec866;
 }
 
 @layer base {

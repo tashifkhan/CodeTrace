@@ -3,6 +3,7 @@ import { fetchGitHubStats } from '../api/github'
 import { fetchLeetCodeStats } from '../api/leetcode'
 import { fetchCodeforcesStats } from '../api/codeforces'
 import { fetchCodeChefStats } from '../api/codechef'
+import { fetchHackerRankStats } from '../api/hackerrank'
 import { StatNumber } from './StatNumber'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
@@ -17,17 +18,20 @@ export function SummaryStrip({ usernames }: Props) {
   const lc = useQuery({ queryKey: ['leetcode', usernames.leetcode], queryFn: () => fetchLeetCodeStats(usernames.leetcode), enabled: !!usernames.leetcode })
   const cf = useQuery({ queryKey: ['codeforces', usernames.codeforces], queryFn: () => fetchCodeforcesStats(usernames.codeforces), enabled: !!usernames.codeforces })
   const cc = useQuery({ queryKey: ['codechef', usernames.codechef], queryFn: () => fetchCodeChefStats(usernames.codechef), enabled: !!usernames.codechef })
+  const hr = useQuery({ queryKey: ['hackerrank', usernames.hackerrank], queryFn: () => fetchHackerRankStats(usernames.hackerrank), enabled: !!usernames.hackerrank })
 
   const commits = gh.data?.stats.totalCommits ?? 0
   const solved = lc.data?.totalSolved ?? 0
   const rating = cf.data?.rating ?? 0
   const ccRating = cc.data?.profile.currentRating ?? 0
+  const hrSolved = hr.data?.totalSolved ?? 0
 
   const stats = [
     { value: commits, label: 'GitHub Commits', enabled: !!gh.data },
     { value: solved,  label: 'LeetCode Solved', enabled: !!lc.data },
     { value: rating,  label: 'CF Rating',       enabled: !!cf.data },
     { value: ccRating, label: 'CC Rating',      enabled: !!cc.data },
+    { value: hrSolved, label: 'HR Solved',      enabled: !!hr.data },
   ]
 
   return (
