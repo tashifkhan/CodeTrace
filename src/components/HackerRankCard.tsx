@@ -4,7 +4,6 @@ import { StatNumber } from './StatNumber'
 import { DifficultyMeter } from './DifficultyMeter'
 import { LoadingCard } from './LoadingCard'
 import { ErrorBadge } from './ErrorBadge'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 
