@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { fetchHackerRankDetail, fetchHackerRankHeatmap } from '../api/hackerrank'
 import { StatNumber } from '../components/StatNumber'
 import { DifficultyMeter } from '../components/DifficultyMeter'
@@ -16,6 +16,7 @@ import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 import { PlatformIcon } from '../components/PlatformIcon'
+import { formatDisplayDate } from '@/lib/utils'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -76,11 +77,22 @@ export function HackerRankPage() {
       oldRating: i === 0 ? Math.round(c.rating) : Math.round(contestInfo.contestHistory.filter(x => x.attended)[i - 1]?.rating ?? c.rating),
     })) ?? []
 
+  const socialLinks = [
+    { label: 'GitHub', url: data.githubUrl },
+    { label: 'Twitter', url: data.twitterUrl },
+    { label: 'LinkedIn', url: data.linkedinUrl },
+    ...(data.profile?.websites ?? []).slice(0, 3).map((url, index) => ({ label: `Site ${index + 1}`, url })),
+  ].filter(link => !!link.url)
+
+  const submissionPanels = data.submitStats ? [
+    { title: 'Accepted Tracks', rows: data.submitStats.acSubmissionNum },
+    { title: 'All Attempts', rows: data.submitStats.totalSubmissionNum },
+  ] : []
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 flex flex-col gap-6">
       <BackLink />
 
-      {/* Hero */}
       <div className="flex flex-col sm:flex-row items-start sm:items-end gap-6 pb-4">
         <div className="flex items-center gap-4 flex-1">
           {data.profile?.userAvatar && (
@@ -90,7 +102,7 @@ export function HackerRankPage() {
             </Avatar>
           )}
           <div>
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
               <Badge variant="outline" className="gap-1.5" style={{ color: 'var(--platform-hackerrank)' }}>
                 <PlatformIcon platform="hackerrank" className="size-3" />
                 HackerRank
@@ -98,6 +110,11 @@ export function HackerRankPage() {
               {data.profile?.starRating && (
                 <Badge variant="outline" className="text-[10px] font-mono">
                   {data.profile.starRating} ★
+                </Badge>
+              )}
+              {data.activeBadge && (
+                <Badge variant="outline" className="text-[10px] font-mono border-primary/30 text-primary">
+                  Active: {data.activeBadge.displayName}
                 </Badge>
               )}
             </div>
@@ -115,7 +132,6 @@ export function HackerRankPage() {
 
       <Separator />
 
-      {/* Overview stats */}
       <Section title="Overview">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
           <StatNumber value={data.totalSolved} label="Problems Solved" enabled={!!data} />
@@ -143,13 +159,67 @@ export function HackerRankPage() {
         )}
       </Section>
 
-      {/* Difficulty */}
+      {(data.profile || data.contributions || socialLinks.length > 0 || contestInfo) && (
+        <Section title="Profile Signal">
+          <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+            <div className="rounded-[1.5rem] border border-border bg-secondary/35 p-5">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <div className="text-sm font-mono text-foreground">Presence & reputation</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {data.profile?.birthday ? `Birthday ${formatDisplayDate(data.profile.birthday, { month: 'short', day: 'numeric' })}` : 'Expanded from the live profile endpoint'}
+                  </div>
+                </div>
+                {contestInfo?.badge && (
+                  <Badge variant="outline" className="border-primary/30 text-primary">{contestInfo.badge.name}</Badge>
+                )}
+              </div>
+
+              <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                {data.profile?.aboutMe?.trim() || 'No public bio was returned. The backend now exposes richer profile, social, contest, and submission metadata, so this page can surface reputation and activity beyond the basic solve totals.'}
+              </p>
+
+              {socialLinks.length > 0 && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {socialLinks.map(link => (
+                    <a
+                      key={`${link.label}-${link.url}`}
+                      href={link.url!}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/60 px-3 py-1.5 text-[11px] font-mono text-muted-foreground transition-colors hover:border-primary/30 hover:text-primary"
+                    >
+                      {link.label}
+                      <ExternalLink className="size-3" />
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: 'Reputation', value: data.reputation },
+                { label: 'Points', value: data.contributions?.points ?? 0 },
+                { label: 'Top %', value: contestInfo ? `${contestInfo.topPercentage.toFixed(1)}%` : 'n/a' },
+                { label: 'Participants', value: contestInfo?.totalParticipants?.toLocaleString() ?? 'n/a' },
+              ].map(metric => (
+                <div key={metric.label} className="rounded-2xl border border-border bg-secondary/35 p-4">
+                  <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{metric.label}</div>
+                  <div className="mt-2 text-2xl font-mono text-foreground">{metric.value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Section>
+      )}
+
       <Section title="Problem Breakdown">
         <div className="grid grid-cols-3 gap-4 mb-4">
           {[
-            { label: 'Easy',   solved: data.easySolved,   total: data.totalEasy,   color: '#2db55d' },
+            { label: 'Easy', solved: data.easySolved, total: data.totalEasy, color: '#2db55d' },
             { label: 'Medium', solved: data.mediumSolved, total: data.totalMedium, color: '#ffa116' },
-            { label: 'Hard',   solved: data.hardSolved,   total: data.totalHard,   color: '#ef4444' },
+            { label: 'Hard', solved: data.hardSolved, total: data.totalHard, color: '#ef4444' },
           ].map(({ label, solved, total, color }) => (
             <div key={label} className="flex flex-col items-center gap-1 p-4 rounded-xl bg-secondary/50 border border-border">
               <span className="text-3xl font-mono font-bold" style={{ color }}>{solved}</span>
@@ -166,21 +236,44 @@ export function HackerRankPage() {
         />
       </Section>
 
-      {/* Submission Heatmap */}
       {heatmapData ? (
         <UniversalHeatmap hackerrankHeatmap={heatmapData} />
       ) : Object.keys(data.submissionCalendar).length > 0 ? (
         <UniversalHeatmap calendar={data.submissionCalendar} />
       ) : null}
 
-      {/* Contest rating chart */}
+      {submissionPanels.length > 0 && (
+        <Section title="Submission Pulse">
+          <div className="grid gap-4 md:grid-cols-2">
+            {submissionPanels.map(panel => (
+              <div key={panel.title} className="rounded-[1.5rem] border border-border bg-secondary/35 p-4">
+                <div className="text-sm font-mono text-foreground">{panel.title}</div>
+                <div className="mt-3 space-y-2">
+                  {panel.rows.map(row => (
+                    <div key={`${panel.title}-${row.difficulty}`} className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-background/55 px-3 py-2">
+                      <div>
+                        <div className="text-xs font-mono text-foreground">{row.difficulty}</div>
+                        <div className="text-[10px] text-muted-foreground">{row.count} categories</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-mono text-primary">{row.submissions}</div>
+                        <div className="text-[10px] text-muted-foreground">submissions</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
       {contestRatingHistory.length > 1 && (
         <Section title="Contest Rating History">
           <RatingChart history={contestRatingHistory} height={120} color="var(--platform-hackerrank)" />
         </Section>
       )}
 
-      {/* Contest history table */}
       {contestInfo && contestInfo.contestHistory.length > 0 && (
         <Section title={`Contest History (${contestInfo.attendedContestsCount} attended)`}>
           <Table>
@@ -194,7 +287,7 @@ export function HackerRankPage() {
             </TableHeader>
             <TableBody>
               {contestInfo.contestHistory.filter(c => c.attended).slice(-20).reverse().map((c, i) => {
-                const history = contestInfo.contestHistory.filter(x => x.attended).slice(-20).reverse();
+                const history = contestInfo.contestHistory.filter(x => x.attended).slice(-20).reverse()
                 const delta = i < history.length - 1
                   ? Math.round(c.rating - (history[i+1]?.rating ?? c.rating))
                   : null
@@ -219,18 +312,80 @@ export function HackerRankPage() {
         </Section>
       )}
 
-      {/* Badges */}
-      {data.badges.length > 0 && (
+      {data.recentSubmissions.length > 0 && (
+        <Section title="Recent Submissions">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Challenge</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Language</TableHead>
+                <TableHead className="text-right">When</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.recentSubmissions.slice(0, 8).map(submission => (
+                <TableRow key={`${submission.titleSlug}-${submission.timestamp}`}>
+                  <TableCell className="font-mono text-foreground">{submission.title}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-[10px]">{submission.statusDisplay}</Badge>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{submission.lang}</TableCell>
+                  <TableCell className="text-right text-muted-foreground text-xs">
+                    {new Date(submission.timestamp * 1000).toLocaleString('en', {
+                      month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+                    })}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Section>
+      )}
+
+      {(data.badges.length > 0 || data.upcomingBadges.length > 0) && (
         <Section title="Badges">
-          <div className="flex flex-wrap gap-3">
-            {data.badges.map(badge => (
-              <div key={badge.id} className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-border bg-secondary/50 w-24">
-                <img src={badge.icon} alt={badge.displayName} className="size-10 object-contain" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
-                <span className="text-[10px] text-center text-muted-foreground leading-tight">{badge.displayName}</span>
-                <span className="text-[9px] text-muted-foreground/60">{new Date(badge.creationDate * 1000).toLocaleDateString('en', { month: 'short', year: 'numeric' })}</span>
+          {data.activeBadge && (
+            <div className="rounded-[1.5rem] border border-primary/20 bg-primary/6 p-4">
+              <div className="text-[10px] uppercase tracking-widest text-primary/80">Active Badge</div>
+              <div className="mt-2 flex items-center gap-3">
+                <img src={data.activeBadge.icon} alt={data.activeBadge.displayName} className="size-10 object-contain" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                <div>
+                  <div className="text-sm font-mono text-foreground">{data.activeBadge.displayName}</div>
+                  <div className="text-xs text-muted-foreground">Highlighted on the current profile</div>
+                </div>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
+
+          {data.badges.length > 0 && (
+            <div>
+              <p className="text-[10px] text-muted-foreground/60 mb-3 uppercase tracking-wider">Earned</p>
+              <div className="flex flex-wrap gap-3">
+                {data.badges.map(badge => (
+                  <div key={badge.id} className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-border bg-secondary/50 w-24">
+                    <img src={badge.icon} alt={badge.displayName} className="size-10 object-contain" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                    <span className="text-[10px] text-center text-muted-foreground leading-tight">{badge.displayName}</span>
+                    <span className="text-[9px] text-muted-foreground/60">{formatDisplayDate(badge.creationDate, { month: 'short', year: 'numeric' })}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {data.upcomingBadges.length > 0 && (
+            <div>
+              <p className="text-[10px] text-muted-foreground/60 mb-3 uppercase tracking-wider">Upcoming</p>
+              <div className="flex flex-wrap gap-3">
+                {data.upcomingBadges.map(badge => (
+                  <div key={badge.name} className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-border bg-secondary/50 w-24 opacity-50">
+                    <img src={badge.icon} alt={badge.name} className="size-10 object-contain grayscale" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                    <span className="text-[10px] text-center text-muted-foreground leading-tight">{badge.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </Section>
       )}
     </div>

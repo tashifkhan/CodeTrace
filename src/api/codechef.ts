@@ -10,8 +10,16 @@ export async function fetchCodeChefStats(username: string): Promise<CodeChefProf
   return data
 }
 
-export async function fetchCodeChefHeatmap(username: string): Promise<CodeChefHeatmapData> {
-  const res = await fetch(`${API_BASE}/heatmap/${username}`)
+export async function fetchCodeChefHeatmap(
+  username: string,
+  options: { view?: 'all' | 'last_365' | 'year'; year?: number | null } = {},
+): Promise<CodeChefHeatmapData> {
+  const params = new URLSearchParams()
+  if (options.view) params.set('view', options.view)
+  if (options.year != null) params.set('year', String(options.year))
+
+  const query = params.toString()
+  const res = await fetch(`${API_BASE}/heatmap/${username}${query ? `?${query}` : ''}`)
   if (!res.ok) throw new Error('CodeChef heatmap fetch failed')
   const data = await res.json()
   if (!data.success) throw new Error(data.message || 'Failed to fetch heatmap')
@@ -26,10 +34,13 @@ export async function fetchCodeChefRating(username: string): Promise<CodeChefRat
   return data
 }
 
-export async function fetchCodeChefDetail(username: string): Promise<CodeChefDetailData> {
+export async function fetchCodeChefDetail(
+  username: string,
+  heatmapOptions: { view?: 'all' | 'last_365' | 'year'; year?: number | null } = {},
+): Promise<CodeChefDetailData> {
   const [profile, heatmap, ratingHistory] = await Promise.all([
     fetchCodeChefStats(username),
-    fetchCodeChefHeatmap(username),
+    fetchCodeChefHeatmap(username, heatmapOptions),
     fetchCodeChefRating(username),
   ])
 

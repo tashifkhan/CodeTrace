@@ -15,6 +15,46 @@ export interface Usernames {
   hackerrank: string;
 }
 
+export interface ContributionTotals {
+  points: number;
+  questionCount: number;
+  testcaseCount: number;
+}
+
+export interface SubmitStatEntry {
+  difficulty: string;
+  count: number;
+  submissions: number;
+}
+
+export interface SubmitStats {
+  acSubmissionNum: SubmitStatEntry[];
+  totalSubmissionNum: SubmitStatEntry[];
+}
+
+export interface RecentSubmission {
+  title: string;
+  titleSlug: string;
+  timestamp: number;
+  statusDisplay: string;
+  lang: string;
+}
+
+export interface PracticeProfile {
+  realName: string;
+  userAvatar: string;
+  birthday: string | null;
+  ranking: number;
+  reputation: number;
+  websites: string[];
+  countryName: string;
+  company: string | null;
+  school: string | null;
+  skillTags: string[];
+  aboutMe: string;
+  starRating: number;
+}
+
 // ── GitHub ────────────────────────────────────────────────────────────────
 
 export interface TopLanguage {
@@ -122,16 +162,7 @@ export interface LeetCodeData {
   acceptanceRate: number;
   ranking: number;
   submissionCalendar: Record<string, number>;
-  profile: {
-    realName: string;
-    userAvatar: string;
-    countryName: string;
-    skillTags: string[];
-    aboutMe: string;
-    company: string | null;
-    school: string | null;
-    ranking: number;
-  } | null;
+  profile: PracticeProfile | null;
 }
 
 export interface LeetCodeContest {
@@ -146,13 +177,17 @@ export interface LeetCodeContest {
 }
 
 export interface LeetCodeBadge {
-  creationDate: string;
+  creationDate: string | number;
   displayName: string;
   icon: string;
   id: string;
 }
 
 export interface LeetCodeDetailData extends LeetCodeData {
+  githubUrl: string | null;
+  twitterUrl: string | null;
+  linkedinUrl: string | null;
+  contributions: ContributionTotals | null;
   contestInfo: {
     attendedContestsCount: number;
     badge: { name: string } | null;
@@ -160,6 +195,9 @@ export interface LeetCodeDetailData extends LeetCodeData {
   } | null;
   badges: LeetCodeBadge[];
   upcomingBadges: Array<{ icon: string; name: string }>;
+  activeBadge: LeetCodeBadge | null;
+  submitStats: SubmitStats | null;
+  recentSubmissions: RecentSubmission[];
 }
 
 // ── Codeforces ────────────────────────────────────────────────────────────
@@ -199,6 +237,11 @@ export interface UpcomingContest {
   durationSeconds: number;
   type?: string;
   phase?: string;
+  websiteUrl?: string | null;
+  description?: string | null;
+  preparedBy?: string | null;
+  kind?: string | null;
+  season?: string | null;
 }
 
 export interface CodeforcesDetailData extends CodeforcesData {
@@ -239,10 +282,13 @@ export interface CodeforcesHeatmapEntry {
 
 export interface CodeforcesHeatmapData {
   handle: string;
+  mode: string;
   timezone: string;
   days: number;
+  year?: number | null;
   start_date: string;
   end_date: string;
+  available_years?: number[];
   total_submissions: number;
   total_accepted: number;
   active_days: number;
@@ -282,6 +328,11 @@ export interface GFGHeatmapEntry {
 
 export interface GFGHeatmapData {
   userName: string;
+  range: string;
+  accountCreatedDate: string;
+  fromDate: string;
+  toDate: string;
+  availableYears: number[];
   totalActiveDays: number;
   totalSubmissions: number;
   heatmap: GFGHeatmapEntry[];
@@ -311,6 +362,11 @@ export interface CodeChefHeatmapEntry {
 
 export interface CodeChefHeatmapData {
   handle: string;
+  view: string;
+  year: number | null;
+  availableYears: number[];
+  firstActiveDate: string | null;
+  lastActiveDate: string | null;
   heatMap: CodeChefHeatmapEntry[];
 }
 
@@ -358,20 +414,7 @@ export interface HackerRankData {
   submissionCalendar: Record<string, number>;
 }
 
-export interface HackerRankProfile {
-  realName: string;
-  userAvatar: string;
-  birthday: string;
-  ranking: number;
-  reputation: number;
-  websites: string[];
-  countryName: string;
-  company: string;
-  school: string;
-  skillTags: string[];
-  aboutMe: string;
-  starRating: number;
-}
+export type HackerRankProfile = PracticeProfile;
 
 export interface HackerRankContest {
   attended: boolean;
@@ -392,6 +435,10 @@ export interface HackerRankBadge {
 }
 
 export interface HackerRankDetailData extends HackerRankData {
+  githubUrl: string | null;
+  twitterUrl: string | null;
+  linkedinUrl: string | null;
+  contributions: ContributionTotals | null;
   profile: HackerRankProfile | null;
   contestInfo: {
     attendedContestsCount: number;
@@ -404,6 +451,9 @@ export interface HackerRankDetailData extends HackerRankData {
   } | null;
   badges: HackerRankBadge[];
   upcomingBadges: Array<{ name: string; icon: string }>;
+  activeBadge: HackerRankBadge | null;
+  submitStats: SubmitStats | null;
+  recentSubmissions: RecentSubmission[];
 }
 
 export interface HackerRankHeatmapData {

@@ -142,7 +142,7 @@ export function HomePage() {
             <div className="pt-6 flex flex-wrap gap-4 justify-center">
               {[
                 { name: 'GitHub API', url: 'https://github-stats.tashif.codes/docs' },
-                { name: 'LeetCode API', url: 'https://leetcode-stats.tashif.codes/docs' },
+                { name: 'LeetCode API', url: 'https://leetcode-stats.tashif.codes/' },
                 { name: 'Codeforces API', url: 'https://codeforces-stats.tashif.codes/docs' },
                 { name: 'GFG API', url: 'https://gfg-stats.tashif.codes/docs' },
                 { name: 'CodeChef API', url: 'https://codechef-stats-api-two.vercel.app/' },

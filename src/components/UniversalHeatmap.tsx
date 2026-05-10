@@ -14,9 +14,12 @@ interface Props {
   totalSubmissions?: number;
   activeDays?: number;
   maxStreak?: number;
-  
+  startDate?: string;
+  endDate?: string;
+
   // Custom label (e.g. 'contributions', 'submissions')
   label?: string;
+  periodLabel?: string;
 }
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -39,7 +42,10 @@ export function UniversalHeatmap({
   totalSubmissions: propTotal,
   activeDays: propActiveDays,
   maxStreak: propMaxStreak,
-  label = 'submissions'
+  startDate,
+  endDate,
+  label = 'submissions',
+  periodLabel,
 }: Props) {
   
   // Year selection state
@@ -76,11 +82,22 @@ export function UniversalHeatmap({
         );
       }
     } else {
-      // Build a 52-week grid ending today
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const endSunday = new Date(today);
-      endSunday.setDate(today.getDate() + (6 - today.getDay()));
+      // Build an aligned week grid for the provided range, falling back
+      // to the trailing year when no explicit range is available.
+      const rangeStart = startDate ? new Date(`${startDate}T00:00:00`) : new Date();
+      const rangeEnd = endDate ? new Date(`${endDate}T00:00:00`) : new Date();
+      rangeStart.setHours(0, 0, 0, 0);
+      rangeEnd.setHours(0, 0, 0, 0);
+
+      if (!startDate || !endDate) {
+        rangeStart.setDate(rangeEnd.getDate() - (51 * 7 + 6));
+      }
+
+      const startSunday = new Date(rangeStart);
+      startSunday.setDate(rangeStart.getDate() - rangeStart.getDay());
+
+      const endSaturday = new Date(rangeEnd);
+      endSaturday.setDate(rangeEnd.getDate() + (6 - rangeEnd.getDay()));
 
       const days: { date: string; count: number }[] = [];
       
@@ -98,16 +115,14 @@ export function UniversalHeatmap({
         }
       }
 
-      for (let i = 51 * 7 + 6; i >= 0; i--) {
-        const d = new Date(endSunday);
-        d.setDate(endSunday.getDate() - i);
+      for (let d = new Date(startSunday); d <= endSaturday; d.setDate(d.getDate() + 1)) {
         const ts = String(Math.floor(d.getTime() / 1000));
         const dateStr = d.toISOString().split('T')[0];
         const count = lookupCalendar[ts] ?? lookupCalendar[dateStr] ?? 0;
         days.push({ date: dateStr, count });
       }
 
-      for (let w = 0; w < 52; w++) {
+      for (let w = 0; w < Math.ceil(days.length / 7); w++) {
         finalWeeks.push(days.slice(w * 7, w * 7 + 7));
       }
     }
@@ -133,12 +148,13 @@ export function UniversalHeatmap({
       computedActive: active,
       computedStreak: maxStreak
     };
-  }, [calendar, githubContributions, leetcodeHeatmap, hackerrankHeatmap, selectedYear]);
+  }, [calendar, endDate, githubContributions, hackerrankHeatmap, leetcodeHeatmap, selectedYear, startDate]);
 
   // Use provided stats (e.g. from leetcodeHeatmap) or compute from visible data
   const total = propTotal ?? (leetcodeHeatmap ? leetcodeHeatmap.totalSubmissions : (hackerrankHeatmap ? hackerrankHeatmap.totalSubmissions : computedTotal));
   const activeDays = propActiveDays ?? (leetcodeHeatmap ? leetcodeHeatmap.activeDays : (hackerrankHeatmap ? hackerrankHeatmap.activeDays : computedActive));
   const maxStreak = propMaxStreak ?? (leetcodeHeatmap ? leetcodeHeatmap.longestStreak : (hackerrankHeatmap ? hackerrankHeatmap.longestStreak : computedStreak));
+  const visiblePeriod = periodLabel ?? (selectedYear === 'Current' ? 'the past one year' : selectedYear);
 
   const monthLabels = useMemo(() => {
     const labels: { label: string; col: number }[] = [];
@@ -162,7 +178,7 @@ export function UniversalHeatmap({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-1.5 text-foreground">
             <span className="text-lg font-medium">{total.toLocaleString()}</span>
-            <span className="text-sm text-muted-foreground">{label} in {selectedYear === 'Current' ? 'the past one year' : selectedYear}</span>
+            <span className="text-sm text-muted-foreground">{label} in {visiblePeriod}</span>
           </div>
           
           <div className="flex items-center gap-6 text-sm text-foreground">

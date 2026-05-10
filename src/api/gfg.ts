@@ -23,8 +23,17 @@ export async function fetchGFGProfile(username: string): Promise<GFGProfileData>
   return json as GFGProfileData;
 }
 
-export async function fetchGFGHeatmap(username: string): Promise<GFGHeatmapData> {
-  const res = await fetch(`${BASE}/${username}/heatmap`);
+export async function fetchGFGHeatmap(
+  username: string,
+  options: { range?: 'all' | 'last365days' | 'year'; year?: number | null; month?: number | null } = {},
+): Promise<GFGHeatmapData> {
+  const params = new URLSearchParams();
+  if (options.range) params.set('range', options.range);
+  if (options.year != null) params.set('year', String(options.year));
+  if (options.month != null) params.set('month', String(options.month));
+
+  const query = params.toString();
+  const res = await fetch(`${BASE}/${username}/heatmap${query ? `?${query}` : ''}`);
   if (!res.ok) throw new Error('GFG heatmap unavailable');
   const json = await res.json();
   if (json.error) throw new Error(json.message || 'GFG heatmap unavailable');

@@ -38,8 +38,18 @@ export async function fetchUpcomingContests(): Promise<UpcomingContest[]> {
   return Array.isArray(data) ? data.slice(0, 5) : [];
 }
 
-export async function fetchCodeforcesHeatmap(userid: string, days: number = 365): Promise<import('../types/api').CodeforcesHeatmapData> {
-  const res = await fetch(`${BASE}/${userid}/heatmap?days=${days}`);
+export async function fetchCodeforcesHeatmap(
+  userid: string,
+  options: { days?: number; year?: number | null } = {},
+): Promise<import('../types/api').CodeforcesHeatmapData> {
+  const params = new URLSearchParams();
+  if (options.year != null) {
+    params.set('year', String(options.year));
+  } else {
+    params.set('days', String(options.days ?? 365));
+  }
+
+  const res = await fetch(`${BASE}/${userid}/heatmap?${params.toString()}`);
   const data = await res.json();
   if (data.detail) throw new Error(data.detail);
   return data;
