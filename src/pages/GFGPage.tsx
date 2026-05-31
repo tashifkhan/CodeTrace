@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
-import { fetchGFGStats, fetchGFGProfile, fetchGFGHeatmap } from '../api/gfg'
+import { useGFGStats, useGFGProfile, useGFGHeatmap } from '../hooks/usePlatform'
 import { StatNumber } from '../components/StatNumber'
 import { UniversalHeatmap } from '../components/UniversalHeatmap'
 import { LoadingCard } from '../components/LoadingCard'
@@ -51,29 +50,13 @@ export function GFGPage() {
     document.title = `${username} | GeeksForGeeks Profile`
   }, [username])
 
-  const { data: stats, isLoading: statsLoading, error: statsError } = useQuery({
-    queryKey: ['gfg', username],
-    queryFn: () => fetchGFGStats(username!),
-    enabled: !!username,
-    retry: false,
-  })
+  const { data: stats, isLoading: statsLoading, error: statsError } = useGFGStats(username)
 
-  const { data: profile, isLoading: profileLoading } = useQuery({
-    queryKey: ['gfg-profile', username],
-    queryFn: () => fetchGFGProfile(username!),
-    enabled: !!username,
-    retry: false,
-  })
+  const { data: profile, isLoading: profileLoading } = useGFGProfile(username)
 
-  const { data: heatmapData } = useQuery({
-    queryKey: ['gfg-heatmap', username, heatmapRange, selectedYear],
-    queryFn: () => fetchGFGHeatmap(username!, {
-      range: heatmapRange,
-      year: heatmapRange === 'year' ? selectedYear : null,
-    }),
-    enabled: !!username,
-    retry: false,
-    placeholderData: previousData => previousData,
+  const { data: heatmapData } = useGFGHeatmap(username, {
+    range: heatmapRange,
+    year: heatmapRange === 'year' ? selectedYear : null,
   })
 
   const availableHeatmapYears = heatmapData?.availableYears ?? []

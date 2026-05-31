@@ -1,8 +1,7 @@
 import { useEffect } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, ExternalLink, Star, GitFork } from 'lucide-react'
-import { fetchGitHubDetail } from '../api/github'
+import { useGitHubDetail } from '../hooks/usePlatform'
 import { StatNumber } from '../components/StatNumber'
 import { LanguageBar } from '../components/LanguageBar'
 import { UniversalHeatmap } from '../components/UniversalHeatmap'
@@ -36,11 +35,7 @@ export function GitHubPage() {
     document.title = `${username} | GitHub Profile`
   }, [username])
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['github-detail', username],
-    queryFn: () => fetchGitHubDetail(username!),
-    enabled: !!username,
-  })
+  const { data, isLoading, error } = useGitHubDetail(username)
 
   if (isLoading) return (
     <div className="max-w-5xl mx-auto px-4 py-8">

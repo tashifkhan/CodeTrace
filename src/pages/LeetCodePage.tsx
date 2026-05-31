@@ -1,8 +1,7 @@
 import { useEffect } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
-import { fetchLeetCodeDetail, fetchLeetCodeHeatmap } from '../api/leetcode'
+import { useLeetCodeDetail, useLeetCodeHeatmap } from '../hooks/usePlatform'
 import { StatNumber } from '../components/StatNumber'
 import { DifficultyMeter } from '../components/DifficultyMeter'
 import { UniversalHeatmap } from '../components/UniversalHeatmap'
@@ -40,18 +39,8 @@ export function LeetCodePage() {
     document.title = `${username} | LeetCode Profile`
   }, [username])
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['leetcode-detail', username],
-    queryFn: () => fetchLeetCodeDetail(username!),
-    enabled: !!username,
-  })
-
-  const { data: heatmapData } = useQuery({
-    queryKey: ['leetcode-heatmap', username],
-    queryFn: () => fetchLeetCodeHeatmap(username!),
-    enabled: !!username,
-    retry: false,
-  })
+  const { data, isLoading, error } = useLeetCodeDetail(username)
+  const { data: heatmapData } = useLeetCodeHeatmap(username)
 
   if (isLoading) return (
     <div className="max-w-5xl mx-auto px-4 py-8">

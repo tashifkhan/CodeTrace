@@ -1,8 +1,7 @@
 import { useEffect } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
-import { fetchHackerRankDetail, fetchHackerRankHeatmap } from '../api/hackerrank'
+import { useHackerRankDetail, useHackerRankHeatmap } from '../hooks/usePlatform'
 import { StatNumber } from '../components/StatNumber'
 import { DifficultyMeter } from '../components/DifficultyMeter'
 import { UniversalHeatmap } from '../components/UniversalHeatmap'
@@ -38,18 +37,8 @@ export function HackerRankPage() {
     document.title = `${username} | HackerRank Profile`
   }, [username])
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['hackerrank-detail', username],
-    queryFn: () => fetchHackerRankDetail(username!),
-    enabled: !!username,
-  })
-
-  const { data: heatmapData } = useQuery({
-    queryKey: ['hackerrank-heatmap', username],
-    queryFn: () => fetchHackerRankHeatmap(username!),
-    enabled: !!username,
-    retry: false,
-  })
+  const { data, isLoading, error } = useHackerRankDetail(username)
+  const { data: heatmapData } = useHackerRankHeatmap(username)
 
   if (isLoading) return (
     <div className="max-w-5xl mx-auto px-4 py-8">

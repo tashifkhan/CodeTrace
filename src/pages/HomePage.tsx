@@ -4,6 +4,7 @@ import { useQueryStates, parseAsString } from 'nuqs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { Link } from '@tanstack/react-router'
 import type { Usernames } from '../types/api'
 import { SearchBar } from '../components/SearchBar'
 import { PlatformCard } from '../components/PlatformCard'
@@ -47,7 +48,7 @@ export function HomePage() {
   }
 
   useEffect(() => {
-    document.title = 'Coding Profile Stacker'
+    document.title = 'CodeTrace'
   }, [])
 
   return (
@@ -55,12 +56,21 @@ export function HomePage() {
       <div className="max-w-5xl mx-auto">
 
         {/* Header */}
-        <header className="mb-12 text-center">
+        <header className="mb-12 text-center relative">
+          <div className="flex justify-center mb-6">
+            <Link
+              to="/market"
+              className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[11px] font-mono text-primary transition-colors hover:bg-primary/10"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              </span>
+              Discover CodeTrace Marketing &rarr;
+            </Link>
+          </div>
           <h1 className="text-5xl md:text-7xl font-display font-bold text-foreground tracking-tight leading-none mb-4">
-            Coding Profile<br />
-            <span style={{ WebkitTextStroke: '1px var(--color-primary)', color: 'transparent' }}>
-              Stacker
-            </span>
+            Code<span style={{ WebkitTextStroke: '1px var(--color-primary)', color: 'transparent' }}>Trace</span>
           </h1>
           <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
             Aggregate your coding footprint across GitHub, LeetCode, Codeforces, GFG, CodeChef, and HackerRank.

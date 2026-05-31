@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft } from 'lucide-react'
-import { fetchCodeChefStats, fetchCodeChefHeatmap, fetchCodeChefRating } from '../api/codechef'
+import { useCodeChefStats, useCodeChefRating, useCodeChefHeatmap } from '../hooks/usePlatform'
 import { StatNumber } from '../components/StatNumber'
 import { UniversalHeatmap } from '../components/UniversalHeatmap'
 import { RatingChart } from '../components/RatingChart'
@@ -46,26 +45,13 @@ export function CodeChefPage() {
     document.title = `${username} | CodeChef Profile`
   }, [username])
 
-  const { data: profileData, isLoading: profileLoading, error: profileError } = useQuery({
-    queryKey: ['codechef-profile', username],
-    queryFn: () => fetchCodeChefStats(username!),
-    enabled: !!username,
-  })
+  const { data: profileData, isLoading: profileLoading, error: profileError } = useCodeChefStats(username)
 
-  const { data: ratingData, isLoading: ratingLoading, error: ratingError } = useQuery({
-    queryKey: ['codechef-rating', username],
-    queryFn: () => fetchCodeChefRating(username!),
-    enabled: !!username,
-  })
+  const { data: ratingData, isLoading: ratingLoading, error: ratingError } = useCodeChefRating(username)
 
-  const { data: heatmapData, isLoading: heatmapLoading, error: heatmapError } = useQuery({
-    queryKey: ['codechef-heatmap', username, heatmapView, selectedYear],
-    queryFn: () => fetchCodeChefHeatmap(username!, {
-      view: heatmapView,
-      year: heatmapView === 'year' ? selectedYear : null,
-    }),
-    enabled: !!username,
-    placeholderData: previousData => previousData,
+  const { data: heatmapData, isLoading: heatmapLoading, error: heatmapError } = useCodeChefHeatmap(username, {
+    view: heatmapView,
+    year: heatmapView === 'year' ? selectedYear : null,
   })
 
   const availableHeatmapYears = heatmapData?.availableYears ?? []

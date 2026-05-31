@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
-import { fetchCodeforcesDetail, fetchCodeforcesHeatmap, fetchUpcomingContests } from '../api/codeforces'
+import { useCodeforcesDetail, useCodeforcesHeatmap, useUpcomingContests } from '../hooks/usePlatform'
 import { StatNumber } from '../components/StatNumber'
 import { RatingChart } from '../components/RatingChart'
 import { UniversalHeatmap } from '../components/UniversalHeatmap'
@@ -64,26 +63,14 @@ export function CodeforcesPage() {
     document.title = `${username} | Codeforces Profile`
   }, [username])
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['codeforces-detail', username],
-    queryFn: () => fetchCodeforcesDetail(username!),
-    enabled: !!username,
-  })
+  const { data, isLoading, error } = useCodeforcesDetail(username)
 
-  const { data: heatmapData } = useQuery({
-    queryKey: ['cf-heatmap', username, heatmapMode, selectedYear],
-    queryFn: () => heatmapMode === 'year'
-      ? fetchCodeforcesHeatmap(username!, { year: selectedYear })
-      : fetchCodeforcesHeatmap(username!, { days: Number(heatmapMode) }),
-    enabled: !!username,
-    placeholderData: previousData => previousData,
-  })
+  const { data: heatmapData } = useCodeforcesHeatmap(
+    username,
+    heatmapMode === 'year' ? { year: selectedYear } : { days: Number(heatmapMode) },
+  )
 
-  const { data: upcomingContests } = useQuery({
-    queryKey: ['cf-upcoming-contests'],
-    queryFn: fetchUpcomingContests,
-    staleTime: 10 * 60 * 1000,
-  })
+  const { data: upcomingContests } = useUpcomingContests()
 
   const availableHeatmapYears = heatmapData?.available_years ?? []
 
