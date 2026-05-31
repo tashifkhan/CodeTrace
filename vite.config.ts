@@ -6,6 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [tailwindcss(), react()],
   server: {
+    port: 5173,
     proxy: {
       '/api/codeforces': {
         target: 'https://codeforces-stats.tashif.codes',
@@ -18,6 +19,8 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api\/codechef/, ''),
       },
     },
+  },
+  optimizeDeps: {
   },
   resolve: {
     alias: {
