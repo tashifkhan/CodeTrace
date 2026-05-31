@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, ExternalLink } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ExternalLink } from 'lucide-react'
 import { useQueryStates, parseAsString } from 'nuqs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -30,7 +30,7 @@ export function HomePage() {
     return !!(query.github || query.leetcode || query.codeforces || query.gfg || query.codechef || query.hackerrank)
   })
 
-  const usernames: Usernames | null = 
+  const usernames: Usernames | null =
     isSubmitted && (query.github || query.leetcode || query.codeforces || query.gfg || query.codechef || query.hackerrank)
       ? {
           github: query.github,
@@ -55,21 +55,27 @@ export function HomePage() {
     <div className="px-4 py-12 md:px-8">
       <div className="max-w-5xl mx-auto">
 
-        {/* Header */}
-        <header className="mb-12 text-center relative">
-          <div className="flex justify-center mb-6">
-            <Link
-              to="/market"
-              className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[11px] font-mono text-primary transition-colors hover:bg-primary/10"
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-              </span>
-              Discover CodeTrace Marketing &rarr;
-            </Link>
-          </div>
-          <h1 className="text-5xl md:text-7xl font-display font-bold text-foreground tracking-tight leading-none mb-4">
+        {/* Header — big hero on the landing/search view, compact once results load */}
+        <header className={`text-center relative ${usernames ? 'mb-10' : 'mb-12'}`}>
+          {!usernames && (
+            <div className="flex justify-center mb-6">
+              <Link
+                to="/market"
+                className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[11px] font-mono text-primary transition-colors hover:bg-primary/10"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                </span>
+                Discover CodeTrace <ArrowRight className="size-4 mr-1.5" />
+              </Link>
+            </div>
+          )}
+          <h1
+            className={`font-display font-bold text-foreground tracking-tight leading-none ${
+              usernames ? 'text-3xl md:text-4xl mb-3' : 'text-5xl md:text-7xl mb-4'
+            }`}
+          >
             Code<span style={{ WebkitTextStroke: '1px var(--color-primary)', color: 'transparent' }}>Trace</span>
           </h1>
           <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
@@ -86,17 +92,25 @@ export function HomePage() {
           </div>
         ) : (
           <div className="fade-in">
-            {/* Back + active usernames */}
-            <div className="flex items-center justify-between mb-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleSearchAgain}
-                className="font-mono text-xs text-muted-foreground hover:text-primary"
-              >
-                <ArrowLeft data-icon="inline-start" />
-                Search again
-              </Button>
+            {/* Back + unified profile + active usernames */}
+            <div className="flex items-center justify-between mb-4 gap-2">
+              <div className="flex items-center gap-1.5">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSearchAgain}
+                  className="font-mono text-xs text-muted-foreground hover:text-primary"
+                >
+                  <ArrowLeft data-icon="inline-start" />
+                  Search again
+                </Button>
+                <Button asChild size="sm" className="font-mono text-xs">
+                  <Link to="/profile" search={(prev) => prev}>
+                    Unified Profile
+                    <ArrowRight data-icon="inline-end" />
+                  </Link>
+                </Button>
+              </div>
               <div className="flex gap-2 flex-wrap justify-end">
                 {(Object.entries(usernames) as [keyof Usernames, string][])
                   .filter(([, v]) => v)

@@ -392,9 +392,9 @@ export function ProfilePage() {
         {/* ── Header ────────────────────────────────────────── */}
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="sm" asChild className="font-mono text-xs text-muted-foreground hover:text-primary">
-            <Link to="/">
+            <Link to="/" search={(prev) => prev}>
               <ArrowLeft className="size-4 mr-1.5" />
-              Search again
+              Back to results
             </Link>
           </Button>
           <h1 className="text-3xl md:text-5xl font-display font-bold text-foreground tracking-tight">
