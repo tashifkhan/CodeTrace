@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useRef, cloneElement } from 'react'
 import { useQueryStates, parseAsString } from 'nuqs'
 import { ActivityCalendar, type Activity } from 'react-activity-calendar'
 import {
@@ -302,12 +302,18 @@ export function ProfilePage() {
   }, [loaded])
 
   // ── Unified heatmap ──────────────────────────────────────────
-  const unifiedHeatmap = useMemo(() => {
+  const { unifiedHeatmap, breakdownByDate } = useMemo(() => {
     const dateMap = new Map<string, number>()
+    // date -> [{ platform, count }] for the per-platform hover breakdown
+    const breakdown = new Map<string, { platform: string; count: number }[]>()
     loaded.forEach((c) =>
-      c.heatmap.dailyContributions.forEach((d) =>
-        dateMap.set(d.date, (dateMap.get(d.date) ?? 0) + d.count),
-      ),
+      c.heatmap.dailyContributions.forEach((d) => {
+        if (d.count <= 0) return
+        dateMap.set(d.date, (dateMap.get(d.date) ?? 0) + d.count)
+        const arr = breakdown.get(d.date) ?? []
+        arr.push({ platform: c.platform, count: d.count })
+        breakdown.set(d.date, arr)
+      }),
     )
     const now = new Date()
     const oneYearAgo = new Date()
@@ -326,8 +332,12 @@ export function ProfilePage() {
       activities.push({ date: dateStr, count, level })
       cursor.setDate(cursor.getDate() + 1)
     }
-    return activities
+    return { unifiedHeatmap: activities, breakdownByDate: breakdown }
   }, [loaded])
+
+  // ── Heatmap hover tooltip ─────────────────────────────────────
+  const heatmapRef = useRef<HTMLDivElement>(null)
+  const [hoveredDay, setHoveredDay] = useState<{ activity: Activity; x: number; y: number } | null>(null)
 
   // ── Badges across platforms ──────────────────────────────────
   const badgePlatforms = useMemo(
@@ -927,20 +937,80 @@ export function ProfilePage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto pb-2 -mx-2 px-2">
-              {isLoading ? (
-                <Skeleton className="w-full h-32" />
-              ) : (
-                <ActivityCalendar
-                  data={unifiedHeatmap}
-                  theme={{ dark: ['#1a1a1a', '#0e4f43', '#1d8a73', '#36c9a8', '#64ffda'] }}
-                  colorScheme="dark"
-                  blockSize={13}
-                  blockMargin={4}
-                  fontSize={12}
-                  labels={{ totalCount: '{{count}} total contributions across all platforms' }}
-                />
-              )}
+            <div ref={heatmapRef} className="relative">
+              <div className="overflow-x-auto pb-2 -mx-2 px-2">
+                {isLoading ? (
+                  <Skeleton className="w-full h-32" />
+                ) : (
+                  <ActivityCalendar
+                    data={unifiedHeatmap}
+                    theme={{ dark: ['#1a1a1a', '#0e4f43', '#1d8a73', '#36c9a8', '#64ffda'] }}
+                    colorScheme="dark"
+                    blockSize={13}
+                    blockMargin={4}
+                    fontSize={12}
+                    labels={{ totalCount: '{{count}} total contributions across all platforms' }}
+                    renderBlock={(block, activity) =>
+                      cloneElement(block, {
+                        onMouseEnter: (e: React.MouseEvent) => {
+                          const rect = heatmapRef.current?.getBoundingClientRect()
+                          if (!rect) return
+                          setHoveredDay({ activity, x: e.clientX - rect.left, y: e.clientY - rect.top })
+                        },
+                        onMouseMove: (e: React.MouseEvent) => {
+                          const rect = heatmapRef.current?.getBoundingClientRect()
+                          if (!rect) return
+                          setHoveredDay({ activity, x: e.clientX - rect.left, y: e.clientY - rect.top })
+                        },
+                        onMouseLeave: () => setHoveredDay(null),
+                        style: { cursor: 'pointer' },
+                      })
+                    }
+                  />
+                )}
+              </div>
+
+              {/* Custom instant tooltip — date + per-platform breakdown */}
+              {hoveredDay && (() => {
+                const { activity, x, y } = hoveredDay
+                const dateLabel = new Date(`${activity.date}T00:00:00`).toLocaleDateString(undefined, {
+                  weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+                })
+                const parts = breakdownByDate.get(activity.date) ?? []
+                return (
+                  <div
+                    className="pointer-events-none absolute z-50 -translate-x-1/2 -translate-y-full"
+                    style={{ left: x, top: y - 10 }}
+                  >
+                    <div className="relative min-w-[170px] rounded-xl border border-primary/20 bg-popover/95 px-3 py-2.5 shadow-2xl shadow-black/50 backdrop-blur-md">
+                      <p className="text-[11px] font-medium tracking-wide text-foreground">{dateLabel}</p>
+                      <p className="mb-2 flex items-baseline gap-1 font-mono text-[13px] font-bold text-primary">
+                        {activity.count}
+                        <span className="text-[10px] font-normal text-muted-foreground">
+                          contribution{activity.count === 1 ? '' : 's'}
+                        </span>
+                      </p>
+                      {parts.length ? (
+                        <div className="space-y-1">
+                          {parts.map((p) => (
+                            <div key={p.platform} className="flex items-center justify-between gap-4 text-[11px]">
+                              <span className="flex items-center gap-1.5" style={{ color: PLATFORM_COLORS[p.platform] }}>
+                                <PlatformIcon platform={p.platform as Platform} className="size-3" />
+                                {PLATFORM_LABELS[p.platform] ?? p.platform}
+                              </span>
+                              <span className="font-mono tabular-nums text-muted-foreground">{p.count}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-[11px] text-muted-foreground/60">No activity</p>
+                      )}
+                      {/* arrow */}
+                      <span className="absolute left-1/2 top-full size-2.5 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-[2px] border-b border-r border-primary/20 bg-popover/95" />
+                    </div>
+                  </div>
+                )
+              })()}
             </div>
           </CardContent>
         </Card>
