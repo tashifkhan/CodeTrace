@@ -7,6 +7,8 @@ import { CodeforcesPage } from '@/pages/CodeforcesPage'
 import { GFGPage } from '@/pages/GFGPage'
 import { CodeChefPage } from '@/pages/CodeChefPage'
 import { HackerRankPage } from '@/pages/HackerRankPage'
+import { ProfilePage } from '@/pages/ProfilePage'
+import { MarketPage } from '@/pages/MarketPage'
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -58,6 +60,18 @@ export const hackerrankRoute = createRoute({
   component: HackerRankPage,
 })
 
+export const profileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/profile',
+  component: ProfilePage,
+})
+
+export const marketRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/market',
+  component: MarketPage,
+})
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   githubRoute,
@@ -66,6 +80,8 @@ const routeTree = rootRoute.addChildren([
   gfgRoute,
   codechefRoute,
   hackerrankRoute,
+  profileRoute,
+  marketRoute,
 ])
 
 export const router = createRouter({ routeTree })
