@@ -535,22 +535,22 @@ export function ProfilePage() {
               ) : radarData.length >= 3 ? (
                 <ResponsiveContainer width="100%" height={300}>
                   <RadarChart cx="50%" cy="50%" outerRadius="72%" data={radarData}>
-                    <PolarGrid stroke="hsl(var(--border))" strokeDasharray="3 3" />
+                    <PolarGrid stroke="#2a2a2a" strokeDasharray="3 3" />
                     <PolarAngleAxis
                       dataKey="subject"
-                      tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                      tick={{ fontSize: 11, fill: '#8a8a8a' }}
                     />
                     <PolarRadiusAxis
                       angle={90}
                       domain={[0, 100]}
-                      tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
+                      tick={{ fontSize: 9, fill: '#8a8a8a' }}
                       tickCount={5}
                     />
                     <Radar
                       name="Activity"
                       dataKey="value"
-                      stroke="hsl(var(--primary))"
-                      fill="hsl(var(--primary))"
+                      stroke="#64ffda"
+                      fill="#64ffda"
                       fillOpacity={0.25}
                       strokeWidth={2}
                     />
@@ -582,7 +582,7 @@ export function ProfilePage() {
                           className="h-full rounded-full transition-all duration-700"
                           style={{
                             width: `${d.value}%`,
-                            background: 'hsl(var(--primary))',
+                            background: '#64ffda',
                           }}
                         />
                       </div>
@@ -702,11 +702,11 @@ export function ProfilePage() {
                   </div>
                   <ResponsiveContainer width="100%" height={160}>
                     <LineChart data={h.points} margin={{ top: 4, right: 4, bottom: 4, left: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" strokeOpacity={0.5} />
                       <XAxis dataKey="i" hide />
                       <YAxis
                         domain={['auto', 'auto']}
-                        tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
+                        tick={{ fontSize: 9, fill: '#8a8a8a' }}
                         width={40}
                       />
                       <Tooltip
@@ -933,7 +933,7 @@ export function ProfilePage() {
               ) : (
                 <ActivityCalendar
                   data={unifiedHeatmap}
-                  theme={{ dark: ['hsl(var(--secondary))', 'hsl(var(--primary))'] }}
+                  theme={{ dark: ['#1a1a1a', '#0e4f43', '#1d8a73', '#36c9a8', '#64ffda'] }}
                   colorScheme="dark"
                   blockSize={13}
                   blockMargin={4}
