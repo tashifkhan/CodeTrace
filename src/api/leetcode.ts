@@ -92,8 +92,15 @@ export async function fetchLeetCodeDetail(username: string): Promise<LeetCodeDet
   };
 }
 
-export async function fetchLeetCodeHeatmap(username: string): Promise<LeetCodeHeatmapData> {
-  const res = await fetch(`${BASE}/${username}/heatmap`);
+export async function fetchLeetCodeHeatmap(
+  username: string,
+  options: { view?: 'all' | 'last_365' | 'year'; year?: number | null } = {},
+): Promise<LeetCodeHeatmapData> {
+  const params = new URLSearchParams();
+  if (options.view) params.set('view', options.view);
+  if (options.year != null) params.set('year', String(options.year));
+  const query = params.toString();
+  const res = await fetch(`${BASE}/${username}/heatmap${query ? `?${query}` : ''}`);
   const data = await res.json();
   if (data.status === 'error') throw new Error(data.message || 'LeetCode heatmap unavailable');
   return data as LeetCodeHeatmapData;

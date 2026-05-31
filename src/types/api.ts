@@ -319,6 +319,9 @@ export interface LeetCodeHeatmapData {
   maxDailySubmissions: number;
   dailyContributions: HeatmapDay[];
   yearlyContributions: Array<{ year: number; totalSubmissions: number; activeDays: number }>;
+  view?: string;
+  year?: number | null;
+  availableYears?: number[];
 }
 
 export interface GFGHeatmapEntry {
@@ -473,4 +476,7 @@ export interface HackerRankHeatmapData {
     count: number;
     level: number;
   }>;
+  view?: string;
+  year?: number | null;
+  availableYears?: number[];
 }

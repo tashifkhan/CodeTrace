@@ -55,8 +55,15 @@ export async function fetchHackerRankDetail(username: string): Promise<HackerRan
   };
 }
 
-export async function fetchHackerRankHeatmap(username: string): Promise<HackerRankHeatmapData> {
-  const res = await fetch(`${BASE}/${username}/heatmap`);
+export async function fetchHackerRankHeatmap(
+  username: string,
+  options: { view?: 'all' | 'last_365' | 'year'; year?: number | null } = {},
+): Promise<HackerRankHeatmapData> {
+  const params = new URLSearchParams();
+  if (options.view) params.set('view', options.view);
+  if (options.year != null) params.set('year', String(options.year));
+  const query = params.toString();
+  const res = await fetch(`${BASE}/${username}/heatmap${query ? `?${query}` : ''}`);
   const data = await res.json();
   if (data.status === 'error') throw new Error(data.message || 'HackerRank heatmap unavailable');
   return data as HackerRankHeatmapData;

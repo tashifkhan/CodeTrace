@@ -1,10 +1,11 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { useHackerRankDetail, useHackerRankHeatmap } from '../hooks/usePlatform'
 import { StatNumber } from '../components/StatNumber'
 import { DifficultyMeter } from '../components/DifficultyMeter'
 import { UniversalHeatmap } from '../components/UniversalHeatmap'
+import { ActivityFilterBar } from '../components/ActivityFilterBar'
 import { RatingChart } from '../components/RatingChart'
 import { LoadingCard } from '../components/LoadingCard'
 import { ErrorBadge } from '../components/ErrorBadge'
@@ -30,15 +31,38 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
+const HEATMAP_VIEWS = [
+  { value: 'all', label: 'Archive' },
+  { value: 'last_365', label: '365D' },
+  { value: 'year', label: 'Year' },
+] as const
+
 export function HackerRankPage() {
   const { username } = useParams({ from: '/hackerrank/$username' })
+  const [heatmapView, setHeatmapView] = useState<'all' | 'last_365' | 'year'>('last_365')
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
 
   useEffect(() => {
     document.title = `${username} | HackerRank Profile`
   }, [username])
 
   const { data, isLoading, error } = useHackerRankDetail(username)
-  const { data: heatmapData } = useHackerRankHeatmap(username)
+  const { data: heatmapData } = useHackerRankHeatmap(username, {
+    view: heatmapView,
+    year: heatmapView === 'year' ? selectedYear : null,
+  })
+
+  const availableHeatmapYears = heatmapData?.availableYears ?? []
+
+  function handleHeatmapViewChange(value: 'all' | 'last_365' | 'year') {
+    setHeatmapView(value)
+    if (value === 'year' && availableHeatmapYears.length > 0 && !availableHeatmapYears.includes(selectedYear)) {
+      setSelectedYear(availableHeatmapYears[0])
+    }
+  }
+
+  const heatmapPeriodLabel =
+    heatmapView === 'year' ? String(selectedYear) : heatmapView === 'all' ? 'all time' : 'the past year'
 
   if (isLoading) return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -226,7 +250,29 @@ export function HackerRankPage() {
       </Section>
 
       {heatmapData ? (
-        <UniversalHeatmap hackerrankHeatmap={heatmapData} />
+        <div className="flex flex-col gap-3">
+          <ActivityFilterBar
+            title="Activity Lens"
+            description="The heatmap endpoint now supports archive, trailing-year, and explicit-year windows. Switch windows to replay how your HackerRank practice changed over time."
+            options={[...HEATMAP_VIEWS]}
+            value={heatmapView}
+            onValueChange={value => handleHeatmapViewChange(value as 'all' | 'last_365' | 'year')}
+            years={heatmapView === 'year' ? availableHeatmapYears : []}
+            selectedYear={heatmapView === 'year' ? selectedYear : null}
+            onYearChange={setSelectedYear}
+            meta={[
+              `${heatmapData.totalSubmissions.toLocaleString()} submissions`,
+              `${heatmapData.activeDays} active days`,
+              `${heatmapData.longestStreak}d max streak`,
+            ]}
+          />
+          <UniversalHeatmap
+            hackerrankHeatmap={heatmapData}
+            startDate={heatmapData.startDate || undefined}
+            endDate={heatmapData.endDate || undefined}
+            periodLabel={heatmapPeriodLabel}
+          />
+        </div>
       ) : Object.keys(data.submissionCalendar).length > 0 ? (
         <UniversalHeatmap calendar={data.submissionCalendar} />
       ) : null}

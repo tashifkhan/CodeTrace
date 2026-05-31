@@ -56,7 +56,7 @@ export function HomePage() {
       <div className="max-w-5xl mx-auto">
 
         {/* Header — big hero on the landing/search view, compact once results load */}
-        <header className={`text-center relative ${usernames ? 'mb-10' : 'mb-12'}`}>
+        <header className={`relative ${usernames ? 'flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 text-left mb-10' : 'text-center mb-12'}`}>
           {!usernames && (
             <div className="flex justify-center mb-6">
               <Link
@@ -78,7 +78,7 @@ export function HomePage() {
           >
             Code<span style={{ WebkitTextStroke: '1px var(--color-primary)', color: 'transparent' }}>Trace</span>
           </h1>
-          <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
+          <p className={`text-sm text-muted-foreground max-w-sm leading-relaxed ${usernames ? 'sm:text-right' : 'mx-auto'}`}>
             Aggregate your coding footprint across GitHub, LeetCode, Codeforces, GFG, CodeChef, and HackerRank.
           </p>
         </header>

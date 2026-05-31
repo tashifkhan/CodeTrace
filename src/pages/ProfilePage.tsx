@@ -1,9 +1,9 @@
-import { useMemo, useState, useRef, cloneElement } from 'react'
+import { useMemo, useState, useRef, useEffect, cloneElement } from 'react'
 import { useQueryStates, parseAsString } from 'nuqs'
 import { ActivityCalendar, type Activity } from 'react-activity-calendar'
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-  ResponsiveContainer, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid,
+  Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid,
 } from 'recharts'
 import {
   ArrowLeft, Trophy, Flame, Code2, Star, TrendingUp, CalendarDays,
@@ -60,6 +60,49 @@ function PlatformLink({ platform, username, children, className }: {
     case 'hackerrank': return <Link to="/hackerrank/$username" params={{ username: u }} className={className}>{children}</Link>
     default:           return <>{children}</>
   }
+}
+
+// Measures its own width via ResizeObserver and hands an explicit pixel width
+// to the chart. recharts' ResponsiveContainer measures 0 under React 19
+// StrictMode's double-mount and stays blank, so we size charts ourselves.
+function MeasuredChart({ height, children }: {
+  height: number
+  children: (width: number) => React.ReactNode
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(0)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const update = (w: number) => { if (w > 0) setWidth(w) }
+    update(el.getBoundingClientRect().width)
+    const ro = new ResizeObserver((entries) => update(entries[0].contentRect.width))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  return (
+    <div ref={ref} className="w-full" style={{ height }}>
+      {width > 0 ? children(width) : null}
+    </div>
+  )
+}
+
+// Custom radar axis label: anchor + offset based on the vertex position so
+// adjacent platform names (e.g. GitHub / HackerRank at the top) don't overlap.
+function PolarTick(props: {
+  x?: number; y?: number; cx?: number; cy?: number; payload?: { value?: string }
+}) {
+  const { x = 0, y = 0, cx = 0, cy = 0, payload } = props
+  const dx = x - cx
+  const dy = y - cy
+  const anchor = Math.abs(dx) < 14 ? 'middle' : dx > 0 ? 'start' : 'end'
+  const ox = anchor === 'start' ? 6 : anchor === 'end' ? -6 : 0
+  const oy = dy < -4 ? -6 : dy > 4 ? 12 : 4
+  return (
+    <text x={x + ox} y={y + oy} textAnchor={anchor} fontSize={10} fill="#8a8a8a">
+      {payload?.value}
+    </text>
+  )
 }
 
 const CATEGORY_LABELS: Record<PlatformCategory, string> = {
@@ -529,7 +572,7 @@ export function ProfilePage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
           {/* Platform Engagement */}
-          <Card className="card-slide-up" style={{ animationDelay: '80ms' }}>
+          <Card className="card-slide-up min-w-0" style={{ animationDelay: '80ms' }}>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <TrendingUp className="size-4 text-primary" />
@@ -543,12 +586,13 @@ export function ProfilePage() {
               ) : radarData.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">No data yet.</p>
               ) : radarData.length >= 3 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <RadarChart cx="50%" cy="50%" outerRadius="72%" data={radarData}>
+                <MeasuredChart height={300}>
+                  {(width) => (
+                  <RadarChart width={width} height={300} cx="50%" cy="50%" outerRadius="62%" data={radarData} margin={{ top: 24, right: 56, bottom: 24, left: 56 }}>
                     <PolarGrid stroke="#2a2a2a" strokeDasharray="3 3" />
                     <PolarAngleAxis
                       dataKey="subject"
-                      tick={{ fontSize: 11, fill: '#8a8a8a' }}
+                      tick={<PolarTick />}
                     />
                     <PolarRadiusAxis
                       angle={90}
@@ -577,7 +621,8 @@ export function ProfilePage() {
                       }}
                     />
                   </RadarChart>
-                </ResponsiveContainer>
+                  )}
+                </MeasuredChart>
               ) : (
                 /* Bar fallback for 1-2 platforms */
                 <div className="space-y-4 py-4">
@@ -710,8 +755,9 @@ export function ProfilePage() {
                       )}
                     </div>
                   </div>
-                  <ResponsiveContainer width="100%" height={160}>
-                    <LineChart data={h.points} margin={{ top: 4, right: 4, bottom: 4, left: 0 }}>
+                  <MeasuredChart height={160}>
+                    {(width) => (
+                    <LineChart width={width} height={160} data={h.points} margin={{ top: 4, right: 4, bottom: 4, left: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" strokeOpacity={0.5} />
                       <XAxis dataKey="i" hide />
                       <YAxis
@@ -740,7 +786,8 @@ export function ProfilePage() {
                         activeDot={{ r: 4, fill: h.color }}
                       />
                     </LineChart>
-                  </ResponsiveContainer>
+                    )}
+                  </MeasuredChart>
                 </div>
               ))}
             </CardContent>

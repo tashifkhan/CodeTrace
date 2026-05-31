@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import type { GitHubContributions, LeetCodeHeatmapData, HackerRankHeatmapData } from '../types/api';
@@ -55,6 +55,10 @@ export function UniversalHeatmap({
   }, [githubContributions]);
 
   const [selectedYear, setSelectedYear] = useState<string>(availableYears[0] ?? 'Current');
+
+  // Hover tooltip — single floating element following the cursor
+  const gridWrapRef = useRef<HTMLDivElement>(null);
+  const [hovered, setHovered] = useState<{ date: string; count: number; x: number; y: number } | null>(null);
 
   const { weeks, maxCount, computedTotal, computedActive, computedStreak } = useMemo(() => {
     let finalWeeks: { date: string; count: number }[][] = [];
@@ -213,41 +217,76 @@ export function UniversalHeatmap({
         </div>
 
       {/* Heatmap Grid */}
-      <div className="overflow-x-auto pb-2 scrollbar-hide -mx-2 px-2">
-        <div className="min-w-[700px]">
-          <div className="relative h-4 mb-1" style={{ paddingLeft: 28 }}>
-            {monthLabels.map(({ label, col }, i) => (
-              <span key={i} className="absolute text-[11px] text-muted-foreground" style={{ left: col * 12 + 28 }}>
-                {label}
-              </span>
-            ))}
-          </div>
-          <div className="flex gap-0.5">
-            <div className="flex flex-col gap-0.5 mr-1 pt-[2px]">
-              {DAYS.map((d, i) => (
-                <div key={i} className="text-[10px] text-muted-foreground h-[10px] flex items-center w-6 pr-1 justify-end leading-none">
-                  {d}
+      <div ref={gridWrapRef} className="relative">
+        <div className="overflow-x-auto pb-2 scrollbar-hide -mx-2 px-2">
+          <div className="min-w-[700px]">
+            <div className="relative h-4 mb-1" style={{ paddingLeft: 28 }}>
+              {monthLabels.map(({ label, col }, i) => (
+                <span key={i} className="absolute text-[11px] text-muted-foreground" style={{ left: col * 12 + 28 }}>
+                  {label}
+                </span>
+              ))}
+            </div>
+            <div className="flex gap-0.5">
+              <div className="flex flex-col gap-0.5 mr-1 pt-[2px]">
+                {DAYS.map((d, i) => (
+                  <div key={i} className="text-[10px] text-muted-foreground h-[10px] flex items-center w-6 pr-1 justify-end leading-none">
+                    {d}
+                  </div>
+                ))}
+              </div>
+              {weeks.map((week, wi) => (
+                <div key={wi} className="flex flex-col gap-0.5">
+                  {week.map((day, di) => (
+                    day ? (
+                      <div
+                        key={day.date}
+                        className="w-[10px] h-[10px] rounded-[2px] transition-all hover:scale-110 hover:ring-1 hover:ring-primary/60 cursor-pointer"
+                        style={{ backgroundColor: getColor(day.count, maxCount) }}
+                        onMouseEnter={(e) => {
+                          const rect = gridWrapRef.current?.getBoundingClientRect();
+                          if (!rect) return;
+                          setHovered({ date: day.date, count: day.count, x: e.clientX - rect.left, y: e.clientY - rect.top });
+                        }}
+                        onMouseMove={(e) => {
+                          const rect = gridWrapRef.current?.getBoundingClientRect();
+                          if (!rect) return;
+                          setHovered({ date: day.date, count: day.count, x: e.clientX - rect.left, y: e.clientY - rect.top });
+                        }}
+                        onMouseLeave={() => setHovered(null)}
+                      />
+                    ) : (
+                      <div key={`empty-${di}`} className="w-[10px] h-[10px]" />
+                    )
+                  ))}
                 </div>
               ))}
             </div>
-            {weeks.map((week, wi) => (
-              <div key={wi} className="flex flex-col gap-0.5">
-                {week.map((day, di) => (
-                  day ? (
-                    <div
-                      key={day.date}
-                      className="w-[10px] h-[10px] rounded-[2px] transition-all hover:scale-110 cursor-pointer"
-                      style={{ backgroundColor: getColor(day.count, maxCount) }}
-                      title={`${day.date}: ${day.count} ${label}`}
-                    />
-                  ) : (
-                    <div key={`empty-${di}`} className="w-[10px] h-[10px]" />
-                  )
-                ))}
-              </div>
-            ))}
           </div>
         </div>
+
+        {/* Instant styled tooltip */}
+        {hovered && (
+          <div
+            className="pointer-events-none absolute z-50 -translate-x-1/2 -translate-y-full"
+            style={{ left: hovered.x, top: hovered.y - 10 }}
+          >
+            <div className="relative min-w-[150px] rounded-xl border border-primary/20 bg-popover/95 px-3 py-2 shadow-2xl shadow-black/50 backdrop-blur-md">
+              <p className="text-[11px] font-medium tracking-wide text-foreground">
+                {new Date(`${hovered.date}T00:00:00`).toLocaleDateString(undefined, {
+                  weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+                })}
+              </p>
+              <p className="flex items-baseline gap-1 font-mono text-[13px] font-bold text-primary">
+                {hovered.count.toLocaleString()}
+                <span className="text-[10px] font-normal text-muted-foreground">
+                  {hovered.count === 1 ? label.replace(/s$/, '') : label}
+                </span>
+              </p>
+              <span className="absolute left-1/2 top-full size-2.5 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-[2px] border-b border-r border-primary/20 bg-popover/95" />
+            </div>
+          </div>
+        )}
       </div>
       </CardContent>
     </Card>

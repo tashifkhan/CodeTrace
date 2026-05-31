@@ -32,11 +32,15 @@ export const useLeetCodeDetail = (username?: string) =>
     enabled: on(username),
   })
 
-export const useLeetCodeHeatmap = (username?: string) =>
+export const useLeetCodeHeatmap = (
+  username: string | undefined,
+  options: { view?: 'all' | 'last_365' | 'year'; year?: number | null } = {},
+) =>
   useQuery({
-    queryKey: ['leetcode-heatmap', username],
-    queryFn: () => fetchLeetCodeHeatmap(username!),
+    queryKey: ['leetcode-heatmap', username, options.view ?? null, options.year ?? null],
+    queryFn: () => fetchLeetCodeHeatmap(username!, options),
     enabled: on(username),
+    placeholderData: keepPreviousData,
     retry: false,
   })
 
@@ -130,10 +134,14 @@ export const useHackerRankDetail = (username?: string) =>
     enabled: on(username),
   })
 
-export const useHackerRankHeatmap = (username?: string) =>
+export const useHackerRankHeatmap = (
+  username: string | undefined,
+  options: { view?: 'all' | 'last_365' | 'year'; year?: number | null } = {},
+) =>
   useQuery({
-    queryKey: ['hackerrank-heatmap', username],
-    queryFn: () => fetchHackerRankHeatmap(username!),
+    queryKey: ['hackerrank-heatmap', username, options.view ?? null, options.year ?? null],
+    queryFn: () => fetchHackerRankHeatmap(username!, options),
     enabled: on(username),
+    placeholderData: keepPreviousData,
     retry: false,
   })
