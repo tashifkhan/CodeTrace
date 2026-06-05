@@ -1,6 +1,6 @@
 // Unified cross-platform stats schema — mirrors the backend `UNIFIED_SCHEMA.md`
-// shared by all six Stat APIs. Every `/{username}/card` response returns this
-// shape inside the envelope's `data` field.
+// shared by all Stat APIs. CodeTrace composes this shape from the common
+// profile/stats/contests/rating/heatmap/badges endpoints.
 
 import type { Platform } from './api'
 
@@ -93,6 +93,13 @@ export interface UnifiedHeatmap {
   lastActiveDate: string | null
   dailyContributions: HeatDay[]
   yearlyContributions: YearContribution[]
+  // Windowing metadata added by the backend. availableYears/yearlyContributions
+  // always describe the full history; the rest reflect the requested view.
+  availableYears?: number[]
+  view?: string
+  year?: number | null
+  startDate?: string | null
+  endDate?: string | null
 }
 
 export interface BadgeItem {

@@ -1,4 +1,6 @@
-export type Platform = 'github' | 'leetcode' | 'codeforces' | 'gfg' | 'codechef' | 'hackerrank';
+import type { UnifiedHeatmap, UnifiedProfile } from './unified';
+
+export type Platform = 'github' | 'leetcode' | 'codeforces' | 'gfg' | 'codechef' | 'hackerrank' | 'tuf';
 
 export interface ApiState<T> {
   data: T | null;
@@ -13,6 +15,7 @@ export interface Usernames {
   gfg: string;
   codechef: string;
   hackerrank: string;
+  tuf: string;
 }
 
 export interface ContributionTotals {
@@ -25,6 +28,7 @@ export interface SubmitStatEntry {
   difficulty: string;
   count: number;
   submissions: number;
+  rank?: number;
 }
 
 export interface SubmitStats {
@@ -130,6 +134,8 @@ export interface GitHubContributions {
 }
 
 export interface GitHubFullData {
+  profile: UnifiedProfile;
+  heatmap: UnifiedHeatmap;
   stats: {
     topLanguages: TopLanguage[];
     totalCommits: number;
@@ -355,7 +361,18 @@ export interface CodeChefProfileData {
     globalRank: number | null;
     countryRank: number | null;
     stars: string | null;
+    totalSolved: number | null;
+    contestsCount: number | null;
   };
+  contestHistory: CodeChefContestHistoryEntry[];
+}
+
+export interface CodeChefContestHistoryEntry {
+  name: string | null;
+  timestamp: number | null;
+  rating: number | null;
+  ranking: number | null;
+  problemsSolved: number | null;
 }
 
 export interface CodeChefHeatmapEntry {
@@ -370,6 +387,12 @@ export interface CodeChefHeatmapData {
   availableYears: number[];
   firstActiveDate: string | null;
   lastActiveDate: string | null;
+  totalSubmissions: number;
+  totalActiveDays: number;
+  currentStreak: number;
+  longestStreak: number;
+  maxDailySubmissions: number;
+  yearlyContributions: { year: number; totalSubmissions: number; activeDays: number }[];
   heatMap: CodeChefHeatmapEntry[];
 }
 
@@ -410,9 +433,10 @@ export interface HackerRankData {
   totalMedium: number;
   hardSolved: number;
   totalHard: number;
-  acceptanceRate: number;
-  ranking: number;
+  acceptanceRate: number | null;
+  ranking: number | null;
   contributionPoints: number;
+  practiceScore: number;
   reputation: number;
   submissionCalendar: Record<string, number>;
 }
