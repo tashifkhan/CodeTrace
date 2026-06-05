@@ -13,6 +13,7 @@ import { fetchCodeforcesDetail, fetchCodeforcesHeatmap, fetchUpcomingContests } 
 import { fetchGFGStats, fetchGFGProfile, fetchGFGHeatmap } from '../api/gfg'
 import { fetchCodeChefStats, fetchCodeChefRating, fetchCodeChefHeatmap } from '../api/codechef'
 import { fetchHackerRankDetail, fetchHackerRankHeatmap } from '../api/hackerrank'
+import { fetchTUFDetail, fetchTUFHeatmap } from '../api/tuf'
 
 const on = (u?: string) => !!u
 
@@ -54,10 +55,10 @@ export const useCodeforcesDetail = (username?: string) =>
 
 export const useCodeforcesHeatmap = (
   username: string | undefined,
-  options: { days?: number; year?: number | null } = {},
+  options: { view?: 'all' | 'last_365' | 'year'; year?: number | null } = {},
 ) =>
   useQuery({
-    queryKey: ['cf-heatmap', username, options.days ?? null, options.year ?? null],
+    queryKey: ['cf-heatmap', username, options.view ?? null, options.year ?? null],
     queryFn: () => fetchCodeforcesHeatmap(username!, options),
     enabled: on(username),
     retry: false,
@@ -90,10 +91,10 @@ export const useGFGProfile = (username?: string) =>
 
 export const useGFGHeatmap = (
   username: string | undefined,
-  options: { range?: 'all' | 'last365days' | 'year'; year?: number | null; month?: number | null } = {},
+  options: { view?: 'all' | 'last_365' | 'year'; year?: number | null } = {},
 ) =>
   useQuery({
-    queryKey: ['gfg-heatmap', username, options.range ?? null, options.year ?? null, options.month ?? null],
+    queryKey: ['gfg-heatmap', username, options.view ?? null, options.year ?? null],
     queryFn: () => fetchGFGHeatmap(username!, options),
     enabled: on(username),
     retry: false,
@@ -144,4 +145,25 @@ export const useHackerRankHeatmap = (
     enabled: on(username),
     placeholderData: keepPreviousData,
     retry: false,
+  })
+
+// ── TUF (takeUforward) ──────────────────────────────────────────────────────
+export const useTUFDetail = (username?: string) =>
+  useQuery({
+    queryKey: ['tuf-detail', username],
+    queryFn: () => fetchTUFDetail(username!),
+    enabled: on(username),
+    retry: false,
+  })
+
+export const useTUFHeatmap = (
+  username: string | undefined,
+  options: { view?: 'all' | 'last_365' | 'year'; year?: number | null } = {},
+) =>
+  useQuery({
+    queryKey: ['tuf-heatmap', username, options.view ?? null, options.year ?? null],
+    queryFn: () => fetchTUFHeatmap(username!, options),
+    enabled: on(username),
+    retry: false,
+    placeholderData: keepPreviousData,
   })
