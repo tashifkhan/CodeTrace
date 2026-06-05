@@ -1,46 +1,111 @@
-import type { GitHubFullData, GitHubDetailData, GitHubContributions, GitHubPR, OrgContribution } from '../types/api';
+import type { GitHubFullData, GitHubDetailData, PinnedRepo, GitHubPR, OrgContribution, GitHubContributions } from '../types/api'
+import type { UnifiedCard } from '../types/unified'
+import { fetchCard } from './cards'
+import { PLATFORM_BASE } from './unifiedClient'
 
-const BASE = 'https://github-stats.tashif.codes';
+const BASE = PLATFORM_BASE.github
 
-async function get(url: string) {
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  return r.json();
+/** Fetch a legacy GitHub endpoint, tolerating failure so one broken
+ *  sub-endpoint never blanks the whole profile page. */
+async function ghJSON<T>(path: string, fallback: T): Promise<T> {
+  try {
+    const res = await fetch(`${BASE}/${path}`)
+    if (!res.ok) return fallback
+    return (await res.json()) as T
+  } catch {
+    return fallback
+  }
+}
+
+function githubFromCard(card: UnifiedCard): GitHubFullData {
+  const totalCommits = card.stats.totalSolved
+  return {
+    profile: card.profile,
+    heatmap: card.heatmap,
+    stats: {
+      topLanguages: card.stats.topicAnalysis.map((topic) => ({
+        name: topic.topic,
+        percentage: topic.count,
+      })),
+      totalCommits,
+      longestStreak: card.heatmap.longestStreak,
+      currentStreak: card.heatmap.currentStreak,
+    },
+    pinned: [],
+    stars: { total_stars: 0, repositories: [] },
+  }
 }
 
 export async function fetchGitHubStats(username: string): Promise<GitHubFullData> {
-  const [stats, pinned, stars] = await Promise.all([
-    get(`${BASE}/${username}/stats`),
-    get(`${BASE}/${username}/pinned`),
-    get(`${BASE}/${username}/stars`),
-  ]);
-  if (stats.status === 'error') throw new Error(stats.message || 'GitHub user not found');
+  // The unified card carries commits/languages/heatmap but not pinned repos or
+  // star totals, so pull those alongside it for the dashboard card.
+  const [card, pinned, stars] = await Promise.all([
+    fetchCard('github', username),
+    ghJSON<PinnedRepo[]>(`${username}/pinned`, []),
+    ghJSON<GitHubFullData['stars']>(`${username}/stars`, { total_stars: 0, repositories: [] }),
+  ])
+
   return {
-    stats,
+    ...githubFromCard(card),
     pinned: Array.isArray(pinned) ? pinned : [],
-    stars,
-  };
+    stars: stars && Array.isArray(stars.repositories) ? stars : { total_stars: 0, repositories: [] },
+  }
+}
+
+export interface GitHubEngineering {
+  prsTotal: number
+  prsMerged: number
+  prsOpen: number
+  stars: number
+  orgs: number
+}
+
+/** Engineering figures the unified card doesn't carry (PRs, stars, orgs).
+ *  The GitHub Stats API has no issues endpoint, so issues are not reported. */
+export async function fetchGitHubEngineering(username: string): Promise<GitHubEngineering> {
+  const [prs, stars, orgs] = await Promise.all([
+    ghJSON<GitHubPR[]>(`${username}/prs`, []),
+    ghJSON<GitHubFullData['stars']>(`${username}/stars`, { total_stars: 0, repositories: [] }),
+    ghJSON<OrgContribution[]>(`${username}/org-contributions`, []),
+  ])
+  const list = Array.isArray(prs) ? prs : []
+  return {
+    prsTotal: list.length,
+    prsMerged: list.filter((p) => p.merged_at != null || p.state === 'merged').length,
+    prsOpen: list.filter((p) => p.state === 'open').length,
+    stars: stars?.total_stars ?? 0,
+    orgs: Array.isArray(orgs) ? orgs.length : 0,
+  }
 }
 
 export async function fetchGitHubDetail(username: string): Promise<GitHubDetailData> {
-  const [base, contribRaw, prsRaw, orgsRaw, viewsRaw] = await Promise.allSettled([
-    fetchGitHubStats(username),
-    get(`${BASE}/${username}/contributions`),
-    get(`${BASE}/${username}/prs`),
-    get(`${BASE}/${username}/org-contributions`),
-    get(`${BASE}/${username}/profile-views`),
-  ]);
+  const base = await fetchGitHubStats(username)
 
-  if (base.status === 'rejected') throw new Error((base.reason as Error).message);
+  // Pull the development-platform detail the unified card doesn't carry.
+  // (pinned + stars already came through `fetchGitHubStats` above.)
+  const [prs, orgContributions, profileViews, statsRaw] = await Promise.all([
+    ghJSON<GitHubPR[]>(`${username}/prs`, []),
+    ghJSON<OrgContribution[]>(`${username}/org-contributions`, []),
+    ghJSON<{ views: number }>(`${username}/profile-views`, { views: 0 }),
+    ghJSON<GitHubContributions | null>(`${username}/stats`, null),
+  ])
 
+  // Year-keyed contribution calendar (drives the per-year heatmap + year selector).
   const contributions: GitHubContributions | null =
-    contribRaw.status === 'fulfilled' ? contribRaw.value : null;
-  const prs: GitHubPR[] =
-    prsRaw.status === 'fulfilled' && Array.isArray(prsRaw.value) ? prsRaw.value : [];
-  const orgContributions: OrgContribution[] =
-    orgsRaw.status === 'fulfilled' && Array.isArray(orgsRaw.value) ? orgsRaw.value : [];
-  const profileViews: number =
-    viewsRaw.status === 'fulfilled' ? (viewsRaw.value?.views ?? 0) : 0;
+    statsRaw && statsRaw.contributions
+      ? {
+          contributions: statsRaw.contributions,
+          totalCommits: statsRaw.totalCommits ?? base.stats.totalCommits,
+          longestStreak: statsRaw.longestStreak ?? base.stats.longestStreak,
+          currentStreak: statsRaw.currentStreak ?? base.stats.currentStreak,
+        }
+      : null
 
-  return { ...base.value, contributions, prs, orgContributions, profileViews };
+  return {
+    ...base,
+    prs: Array.isArray(prs) ? prs : [],
+    orgContributions: Array.isArray(orgContributions) ? orgContributions : [],
+    profileViews: profileViews?.views ?? 0,
+    contributions,
+  }
 }
