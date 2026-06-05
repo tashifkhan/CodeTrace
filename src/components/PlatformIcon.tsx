@@ -13,5 +13,16 @@ export function PlatformIcon({ platform, className = 'size-4' }: Props) {
   if (platform === 'gfg') return <SiGeeksforgeeks className={className} aria-hidden="true" />
   if (platform === 'codechef') return <SiCodechef className={className} aria-hidden="true" />
   if (platform === 'hackerrank') return <SiHackerrank className={className} aria-hidden="true" />
+  if (platform === 'tuf') {
+    return (
+      <span
+        className={className}
+        aria-hidden="true"
+        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.68em', fontWeight: 800 }}
+      >
+        T
+      </span>
+    )
+  }
   return null
 }

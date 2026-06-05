@@ -1,49 +1,46 @@
-import { useQuery } from '@tanstack/react-query'
-import { fetchGitHubStats } from '../api/github'
-import { fetchLeetCodeStats } from '../api/leetcode'
-import { fetchCodeforcesStats } from '../api/codeforces'
-import { fetchCodeChefStats } from '../api/codechef'
-import { fetchHackerRankStats } from '../api/hackerrank'
+import { useMemo } from 'react'
+import { useProfileCards } from '../hooks/useCards'
 import { StatNumber } from './StatNumber'
-import { Card } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import type { Usernames } from '../types/api'
+import { PLATFORM_ACCENT } from './platformMeta'
+import type { Platform, Usernames } from '../types/api'
 
 interface Props {
   usernames: Usernames
 }
 
+/** Editorial ledger strip over the unified cards. Stacked accounts on one
+ *  platform combine: solve/commit counts add up, ratings take the strongest.
+ *  Each figure is tinted with its platform accent. */
 export function SummaryStrip({ usernames }: Props) {
-  const gh = useQuery({ queryKey: ['github', usernames.github], queryFn: () => fetchGitHubStats(usernames.github), enabled: !!usernames.github })
-  const lc = useQuery({ queryKey: ['leetcode', usernames.leetcode], queryFn: () => fetchLeetCodeStats(usernames.leetcode), enabled: !!usernames.leetcode })
-  const cf = useQuery({ queryKey: ['codeforces', usernames.codeforces], queryFn: () => fetchCodeforcesStats(usernames.codeforces), enabled: !!usernames.codeforces })
-  const cc = useQuery({ queryKey: ['codechef', usernames.codechef], queryFn: () => fetchCodeChefStats(usernames.codechef), enabled: !!usernames.codechef })
-  const hr = useQuery({ queryKey: ['hackerrank', usernames.hackerrank], queryFn: () => fetchHackerRankStats(usernames.hackerrank), enabled: !!usernames.hackerrank })
+  const { loaded } = useProfileCards(usernames)
 
-  const commits = gh.data?.stats.totalCommits ?? 0
-  const solved = lc.data?.totalSolved ?? 0
-  const rating = cf.data?.rating ?? 0
-  const ccRating = cc.data?.profile.currentRating ?? 0
-  const hrSolved = hr.data?.totalSolved ?? 0
+  const stats = useMemo(() => {
+    const sumBy = (platform: string) =>
+      loaded.filter((c) => c.platform === platform).reduce((a, c) => a + c.stats.totalSolved, 0)
+    const maxRating = (platform: string) =>
+      Math.max(0, ...loaded.filter((c) => c.platform === platform).map((c) => Math.round(c.contests.rating ?? c.rating.current ?? 0)))
+    const has = (platform: string) => loaded.some((c) => c.platform === platform)
 
-  const stats = [
-    { value: commits, label: 'GitHub Commits', enabled: !!gh.data },
-    { value: solved,  label: 'LeetCode Solved', enabled: !!lc.data },
-    { value: rating,  label: 'CF Rating',       enabled: !!cf.data },
-    { value: ccRating, label: 'CC Rating',      enabled: !!cc.data },
-    { value: hrSolved, label: 'HR Solved',      enabled: !!hr.data },
-  ]
+    return [
+      { value: sumBy('github'),     label: 'GitHub Commits',  platform: 'github' as Platform,     show: has('github') },
+      { value: sumBy('leetcode'),   label: 'LeetCode Solved', platform: 'leetcode' as Platform,   show: has('leetcode') },
+      { value: maxRating('codeforces'), label: 'CF Rating',   platform: 'codeforces' as Platform, show: has('codeforces') },
+      { value: sumBy('gfg'),        label: 'GFG Solved',      platform: 'gfg' as Platform,        show: has('gfg') },
+      { value: maxRating('codechef'), label: 'CC Rating',     platform: 'codechef' as Platform,   show: has('codechef') },
+      { value: sumBy('hackerrank'), label: 'HR Solved',       platform: 'hackerrank' as Platform, show: has('hackerrank') },
+      { value: sumBy('tuf'),        label: 'TUF Solved',      platform: 'tuf' as Platform,        show: has('tuf') },
+    ].filter((s) => s.show)
+  }, [loaded])
+
+  if (!stats.length) return null
 
   return (
-    <Card className="fade-in flex flex-row items-stretch overflow-hidden mb-4 !py-0">
-      {stats.map((s, i) => (
-        <div key={s.label} className="flex items-center flex-1">
-          <div className="flex-1 flex flex-col items-center justify-center gap-1 py-4 px-6">
-            <StatNumber value={s.value} label={s.label} size="lg" enabled={s.enabled} />
-          </div>
-          {i < stats.length - 1 && <Separator orientation="vertical" className="h-auto self-stretch" />}
+    <div className="fade-in mb-8 stat-band grid grid-cols-2 gap-x-8 gap-y-6 border-y border-border/60 py-6 sm:grid-flow-col sm:auto-cols-fr sm:gap-x-0">
+      {stats.map((s) => (
+        <div key={s.label} className="flex flex-col gap-1.5 sm:px-8 sm:first:pl-0 sm:last:pr-0">
+          <StatNumber value={s.value} label={s.label} size="lg" accent={PLATFORM_ACCENT[s.platform]} />
         </div>
       ))}
-    </Card>
+    </div>
   )
 }

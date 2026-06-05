@@ -5,8 +5,7 @@ import { RatingChart } from './RatingChart'
 import { LoadingCard } from './LoadingCard'
 import { ErrorBadge } from './ErrorBadge'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
+import { PLATFORM_ACCENT } from './platformMeta'
 
 const RANK_COLORS: Record<string, string> = {
   'legendary grandmaster': '#ff0000',
@@ -46,41 +45,46 @@ export function CodeforcesCard({ username }: Props) {
     <div className="flex flex-col gap-5 p-5">
       <div className="flex items-start gap-4">
         {data.avatar && (
-          <Avatar className="rounded-xl size-12">
+          <Avatar className="size-12 shrink-0 rounded-xl">
             <AvatarImage src={data.avatar} alt={data.handle} />
             <AvatarFallback className="rounded-xl">{data.handle.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
         )}
-        <div className="flex flex-col gap-1 flex-1 min-w-0">
-          <div className="flex items-baseline gap-2 flex-wrap">
-            <span className="text-2xl font-mono font-medium text-foreground">{data.rating ?? '—'}</span>
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex flex-wrap items-baseline gap-2">
+            <span className="font-serif text-2xl font-light leading-none tnum" style={{ color: PLATFORM_ACCENT.codeforces }}>
+              {data.rating ?? '—'}
+            </span>
             {data.rank && (
-              <Badge variant="outline" style={{ color: rankColor(data.rank), borderColor: `color-mix(in srgb, ${rankColor(data.rank)} 30%, transparent)` }}>
+              <span
+                className="rounded-full border px-2 py-0.5 text-[10px] font-mono"
+                style={{ color: rankColor(data.rank), borderColor: `color-mix(in srgb, ${rankColor(data.rank)} 30%, transparent)` }}
+              >
                 {data.rank}
-              </Badge>
+              </span>
             )}
           </div>
-          <span className="text-xs font-mono text-muted-foreground">
-            Max: {data.maxRating ?? '—'}{data.maxRank ? ` · ${data.maxRank}` : ''}
+          <span className="font-mono text-xs text-muted-foreground">
+            Max: <span className="text-foreground tnum">{data.maxRating ?? '—'}</span>{data.maxRank ? ` · ${data.maxRank}` : ''}
           </span>
         </div>
       </div>
 
-      <Separator />
-
-      <div className="grid grid-cols-2 gap-4">
-        <StatNumber value={data.solved_problems_count} label="Solved" enabled={!!data} />
-        <StatNumber value={data.contests_count} label="Contests" enabled={!!data} />
+      <div className="stat-band grid grid-cols-2 gap-x-4 sm:gap-x-0">
+        <div className="flex flex-col gap-1.5 sm:px-4 sm:first:pl-0 sm:last:pr-0">
+          <StatNumber value={data.solved_problems_count} label="Solved" enabled={!!data} />
+        </div>
+        <div className="flex flex-col gap-1.5 sm:px-4 sm:first:pl-0 sm:last:pr-0">
+          <StatNumber value={data.contests_count} label="Contests" enabled={!!data} />
+        </div>
       </div>
 
       {ratingHistory.length > 1 && (
         <div className="flex flex-col gap-2">
-          <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Rating History</span>
-          <RatingChart history={ratingHistory} />
+          <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground/70">Rating History</span>
+          <RatingChart history={ratingHistory} color={PLATFORM_ACCENT.codeforces} />
         </div>
       )}
-
-
     </div>
   )
 }

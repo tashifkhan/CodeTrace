@@ -5,7 +5,7 @@ import { LanguageBar } from './LanguageBar'
 import { PinnedRepos } from './PinnedRepos'
 import { LoadingCard } from './LoadingCard'
 import { ErrorBadge } from './ErrorBadge'
-import { Separator } from '@/components/ui/separator'
+import { PLATFORM_ACCENT } from './platformMeta'
 
 interface Props {
   username: string
@@ -25,26 +25,30 @@ export function GitHubCard({ username }: Props) {
 
   return (
     <div className="flex flex-col gap-5 p-5">
-      <div className="grid grid-cols-3 gap-4">
-        <StatNumber value={stats.totalCommits} label="Commits" enabled={!!data} />
-        <StatNumber value={stats.currentStreak} label="Streak" suffix="d" enabled={!!data} />
-        <StatNumber value={stars.total_stars} label="Stars" enabled={!!data} />
+      <div className="stat-band grid grid-cols-3 gap-x-4 gap-y-3 sm:gap-x-0">
+        <div className="flex flex-col gap-1.5 sm:px-4 sm:first:pl-0 sm:last:pr-0">
+          <StatNumber value={stats.totalCommits} label="Commits" accent={PLATFORM_ACCENT.github} enabled={!!data} />
+        </div>
+        <div className="flex flex-col gap-1.5 sm:px-4 sm:first:pl-0 sm:last:pr-0">
+          <StatNumber value={stats.currentStreak} label="Streak" suffix="d" enabled={!!data} />
+        </div>
+        <div className="flex flex-col gap-1.5 sm:px-4 sm:first:pl-0 sm:last:pr-0">
+          <StatNumber value={stars.total_stars} label="Stars" enabled={!!data} />
+        </div>
       </div>
 
-      <Separator />
-
       <div className="flex gap-6 text-xs font-mono text-muted-foreground">
-        <span>Longest streak: <span className="text-foreground">{stats.longestStreak}d</span></span>
+        <span>Longest streak: <span className="text-foreground tnum">{stats.longestStreak}d</span></span>
       </div>
 
       <div className="flex flex-col gap-2">
-        <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Languages</span>
+        <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground/70">Languages</span>
         <LanguageBar languages={stats.topLanguages} />
       </div>
 
       {pinned.length > 0 && (
         <div className="flex flex-col gap-2">
-          <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Pinned</span>
+          <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground/70">Pinned</span>
           <PinnedRepos repos={pinned} />
         </div>
       )}

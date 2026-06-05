@@ -3,8 +3,7 @@ import { fetchGFGStats } from '../api/gfg'
 import { StatNumber } from './StatNumber'
 import { LoadingCard } from './LoadingCard'
 import { ErrorBadge } from './ErrorBadge'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
+import { PLATFORM_ACCENT } from './platformMeta'
 
 interface Props {
   username: string
@@ -33,17 +32,18 @@ export function GFGCard({ username }: Props) {
 
   return (
     <div className="flex flex-col gap-5 p-5">
-      <StatNumber value={data.totalProblemsSolved} label="Total Solved" size="lg" enabled={!!data} />
-
-      <Separator />
+      <StatNumber value={data.totalProblemsSolved} label="Total Solved" size="lg" accent={PLATFORM_ACCENT.gfg} enabled={!!data} />
 
       <div className="grid grid-cols-5 gap-2">
         {DIFFICULTIES.map(({ key, color }) => (
-          <div key={key} className="flex flex-col items-center gap-1.5">
-            <span className="text-lg font-mono font-medium" style={{ color }}>{data[key]}</span>
-            <Badge variant="outline" className="text-[9px]" style={{ color, borderColor: `color-mix(in srgb, ${color} 30%, transparent)` }}>
+          <div key={key} className="tile flex flex-col items-center gap-1.5 px-1.5 py-3">
+            <span className="font-mono text-lg font-medium tnum" style={{ color }}>{data[key]}</span>
+            <span
+              className="rounded-full border px-1.5 py-0.5 text-[9px] font-mono"
+              style={{ color, borderColor: `color-mix(in srgb, ${color} 30%, transparent)` }}
+            >
               {key}
-            </Badge>
+            </span>
           </div>
         ))}
       </div>
