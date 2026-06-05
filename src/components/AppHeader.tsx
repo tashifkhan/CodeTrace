@@ -1,0 +1,93 @@
+import { useState } from 'react'
+import { Link } from '@tanstack/react-router'
+import { ArrowLeft, Share2, Check } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+
+interface Props {
+  /** Where the back action points. Defaults to the dashboard. */
+  backTo?: string
+  /** Label for the back action. */
+  backLabel?: string
+  /** URL to share; defaults to the current location. */
+  shareUrl?: string
+  /** Title passed to the native share sheet. */
+  shareTitle?: string
+  className?: string
+}
+
+/** Shared terminal-titlebar header used across the app: traffic lights, the
+ *  pixel CodeTrace wordmark, a back link and a share button (native share sheet
+ *  where available, clipboard copy otherwise). */
+export function AppHeader({
+  backTo = '/app',
+  backLabel = 'dashboard',
+  shareUrl,
+  shareTitle = 'CodeTrace',
+  className,
+}: Props) {
+  const [copied, setCopied] = useState(false)
+
+  const handleShare = async () => {
+    const url = shareUrl ?? (typeof window !== 'undefined' ? window.location.href : '')
+    if (!url) return
+
+    const copy = async () => {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: shareTitle, url })
+        return
+      }
+      await copy()
+    } catch (err) {
+      // Cancelling the native share sheet throws AbortError — not a failure.
+      if (err instanceof Error && err.name === 'AbortError') return
+      try { await copy() } catch { /* clipboard blocked — nothing more to do */ }
+    }
+  }
+
+  return (
+    <header className={cn('mb-8', className)}>
+      <div className="term-window">
+        <div className="term-bar flex-wrap gap-y-2">
+          <span className="term-dot" style={{ background: 'var(--term-red)' }} />
+          <span className="term-dot" style={{ background: 'var(--term-amber)' }} />
+          <span className="term-dot" style={{ background: 'var(--term-green)' }} />
+          <Link
+            to="/"
+            className="glow-text ml-2 font-pixel text-base text-foreground transition-opacity hover:opacity-80"
+          >
+            CodeTrace
+          </Link>
+          <div className="ml-auto flex items-center gap-1.5">
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className="font-mono text-xs text-muted-foreground hover:text-primary"
+            >
+              <Link to={backTo}>
+                <ArrowLeft data-icon="inline-start" />
+                {backLabel}
+              </Link>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleShare}
+              className="font-mono text-xs text-muted-foreground hover:text-primary"
+            >
+              {copied ? <Check data-icon="inline-start" /> : <Share2 data-icon="inline-start" />}
+              {copied ? 'copied' : 'share'}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </header>
+  )
+}
