@@ -12,6 +12,17 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
 type TabType = 'npx' | 'curl' | 'api.json'
+type DemoHeatmapCell = { type: 'github' | 'leetcode' | 'codechef' | 'empty'; intensity: number }
+
+const heatmapCells: DemoHeatmapCell[] = []
+for (let index = 0; index < 98; index += 1) {
+  const rand = ((index * 37) % 100) / 100
+  const intensity = ((index * 7) % 4) + 1
+  if (rand < 0.25) heatmapCells.push({ type: 'github', intensity })
+  else if (rand < 0.45) heatmapCells.push({ type: 'leetcode', intensity })
+  else if (rand < 0.55) heatmapCells.push({ type: 'codechef', intensity })
+  else heatmapCells.push({ type: 'empty', intensity: 0 })
+}
 
 export function MarketPage() {
   const [activeTab, setActiveTab] = useState<TabType>('npx')
@@ -20,21 +31,17 @@ export function MarketPage() {
   const [codeforcesUser, setCodeforcesUser] = useState('alex_cf')
   
   const [copied, setCopied] = useState(false)
-  const [generatedUrl, setGeneratedUrl] = useState('')
 
   useEffect(() => {
     document.title = 'CodeTrace | Your Unified Developer Footprint'
   }, [])
 
-  useEffect(() => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://codetrace.dev'
-    const params = new URLSearchParams()
-    if (githubUser) params.set('github', githubUser)
-    if (leetcodeUser) params.set('leetcode', leetcodeUser)
-    if (codeforcesUser) params.set('codeforces', codeforcesUser)
-    
-    setGeneratedUrl(`${origin}/profile?${params.toString()}`)
-  }, [githubUser, leetcodeUser, codeforcesUser])
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://codetrace.dev'
+  const params = new URLSearchParams()
+  if (githubUser) params.set('github', githubUser)
+  if (leetcodeUser) params.set('leetcode', leetcodeUser)
+  if (codeforcesUser) params.set('codeforces', codeforcesUser)
+  const generatedUrl = `${origin}/profile?${params.toString()}`
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(generatedUrl)
@@ -42,47 +49,37 @@ export function MarketPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  // Simulated heatmap cells data
-  const heatmapCells = Array.from({ length: 98 }, (_) => {
-    // Distribute github (green), leetcode (orange/yellow), empty, and codechef (brown/beige) cells
-    const rand = Math.random()
-    if (rand < 0.25) return { type: 'github', intensity: Math.floor(Math.random() * 4) + 1 }
-    if (rand < 0.45) return { type: 'leetcode', intensity: Math.floor(Math.random() * 4) + 1 }
-    if (rand < 0.55) return { type: 'codechef', intensity: Math.floor(Math.random() * 4) + 1 }
-    return { type: 'empty', intensity: 0 }
-  })
-
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-background font-sans antialiased overflow-x-hidden">
-      
+    <div className="relative min-h-screen bg-background text-foreground selection:bg-primary selection:text-background font-sans antialiased overflow-x-hidden">
+
       {/* Dynamic Grid Background Overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f1f_1px,transparent_1px),linear-gradient(to_bottom,#1f1f1f_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none opacity-20" />
+      <div aria-hidden className="absolute inset-0 bg-[linear-gradient(to_right,color-mix(in_srgb,var(--color-primary)_11%,transparent)_1px,transparent_1px),linear-gradient(to_bottom,color-mix(in_srgb,var(--color-primary)_11%,transparent)_1px,transparent_1px)] bg-[size:34px_34px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none opacity-50" />
 
       {/* Navbar / Top Bar */}
       <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md px-4 md:px-8 py-3">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 group">
-            <span className="font-mono text-primary font-bold text-sm select-none">&gt;_</span>
-            <span className="font-display font-bold text-xl tracking-tight">
-              Code<span className="text-primary transition-all group-hover:text-primary-foreground group-hover:bg-primary px-0.5 rounded">Trace</span>
+          <Link to="/" aria-label="CodeTrace home" className="flex items-center gap-2 group">
+            <span className="font-mono text-[var(--term-green)] font-bold text-sm select-none">&gt;_</span>
+            <span className="glow-text font-pixel text-base tracking-tight text-foreground transition-opacity group-hover:opacity-80">
+              CodeTrace
             </span>
           </Link>
-          
+
           <div className="flex items-center gap-4">
             <Link
-              to="/"
+              to="/app"
               className="text-xs font-mono text-muted-foreground hover:text-foreground transition-colors"
             >
-              Dashboard
+              <span className="text-[var(--term-green)]">$</span> dashboard
             </Link>
             <Button
               variant="outline"
               size="sm"
-              className="font-mono text-xs border-primary/20 text-primary hover:bg-primary/10 gap-1"
+              className="font-mono text-xs rounded-md border-primary/20 text-primary hover:bg-primary/10 gap-1"
               asChild
             >
-              <Link to="/">
-                Launch App
+              <Link to="/app">
+                ./launch
                 <ArrowRight className="size-3" />
               </Link>
             </Button>
@@ -94,36 +91,35 @@ export function MarketPage() {
       <section className="px-4 py-16 md:py-24 max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative">
         {/* Left Col - Copy & Pitch */}
         <div className="lg:col-span-7 flex flex-col items-start text-left space-y-6 z-10">
-          <Badge variant="outline" className="font-mono text-[10px] uppercase tracking-wider py-1 border-primary/30 text-primary bg-primary/5">
-            // Unified Developer Profiler
+          <Badge variant="outline" className="rise-in rounded-md font-mono text-[10px] uppercase tracking-wider py-1 border-[var(--term-green)]/30 text-[var(--term-green)] bg-[var(--term-green)]/5" style={{ animationDelay: '0.05s' }}>
+            {'// unified_developer_profiler'}
           </Badge>
-          
-          <h1 className="text-5xl md:text-7xl font-display font-extrabold tracking-tight leading-[0.9] text-foreground">
+
+          <h1 className="rise-in text-5xl md:text-7xl font-display font-bold tracking-tight leading-[0.95] text-foreground" style={{ animationDelay: '0.12s' }}>
             Every footprint.<br />
-            <span style={{ WebkitTextStroke: '1px var(--color-primary)', color: 'transparent' }}>
-              One single
-            </span><br />
-            terminal.
+            <span className="text-muted-foreground">One single</span><br />
+            <span className="glitch glow-text font-pixel text-primary" data-text="terminal.">terminal.</span>
           </h1>
 
-          <p className="text-base text-muted-foreground max-w-lg leading-relaxed">
+          <p className="rise-in text-base text-muted-foreground max-w-lg leading-relaxed" style={{ animationDelay: '0.19s' }}>
             Stop pasting six different profile URLs. Aggregate your coding footprints, contest ratings, solved problems count, and commit histories from major developer platforms into one sleek dashboard.
           </p>
 
           {/* Platform Icon Ribbon */}
-          <div className="flex flex-wrap items-center gap-3 pt-2">
+          <div className="rise-in flex flex-wrap items-center gap-3 pt-2" style={{ animationDelay: '0.26s' }}>
             <span className="text-xs font-mono text-muted-foreground/60 mr-2">Integrates with:</span>
             {[
-              { icon: SiGithub, color: '#e0e0e0', label: 'GitHub' },
-              { icon: SiLeetcode, color: '#ffa116', label: 'LeetCode' },
-              { icon: SiCodeforces, color: '#1f8ef1', label: 'Codeforces' },
-              { icon: SiGeeksforgeeks, color: '#2db55d', label: 'GFG' },
-              { icon: SiCodechef, color: '#5B4638', label: 'CodeChef' },
-              { icon: SiHackerrank, color: '#2ec866', label: 'HackerRank' }
-            ].map((p, idx) => (
+              { icon: SiGithub, color: 'var(--platform-github)', label: 'GitHub' },
+              { icon: SiLeetcode, color: 'var(--platform-leetcode)', label: 'LeetCode' },
+              { icon: SiCodeforces, color: 'var(--platform-codeforces)', label: 'Codeforces' },
+              { icon: SiGeeksforgeeks, color: 'var(--platform-gfg)', label: 'GeeksForGeeks' },
+              { icon: SiCodechef, color: 'var(--platform-codechef)', label: 'CodeChef' },
+              { icon: SiHackerrank, color: 'var(--platform-hackerrank)', label: 'HackerRank' }
+            ].map((p) => (
               <span 
-                key={idx} 
-                className="p-1.5 rounded bg-card border border-border/50 flex items-center justify-center transition-all hover:scale-110" 
+                key={p.label} 
+                aria-label={p.label}
+                className="p-1.5 rounded bg-card border border-border/50 flex items-center justify-center transition-all hover:scale-110 hover:border-primary/30" 
                 style={{ color: p.color }}
                 title={p.label}
               >
@@ -132,9 +128,9 @@ export function MarketPage() {
             ))}
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto pt-4">
+          <div className="rise-in flex flex-col sm:flex-row gap-3 w-full sm:w-auto pt-4" style={{ animationDelay: '0.33s' }}>
             <Button size="lg" className="font-mono bg-primary text-primary-foreground font-semibold hover:bg-primary/90 flex items-center justify-center gap-2" asChild>
-              <Link to="/">
+              <Link to="/app">
                 Build Your Profile
                 <ArrowRight className="size-4" />
               </Link>
@@ -148,16 +144,16 @@ export function MarketPage() {
         </div>
 
         {/* Right Col - Simulated Terminal Window */}
-        <div className="lg:col-span-5 w-full z-10">
-          <div className="rounded-xl border border-border bg-card/60 backdrop-blur-sm overflow-hidden shadow-2xl">
+        <div className="rise-in lg:col-span-5 w-full z-10" style={{ animationDelay: '0.15s' }}>
+          <div className="term-window scanlines shadow-2xl">
             {/* Terminal Header */}
-            <div className="bg-secondary/40 px-4 py-3 flex items-center justify-between border-b border-border">
+            <div className="term-bar justify-between">
               <div className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-full bg-red-500/80" />
-                <span className="size-2.5 rounded-full bg-yellow-500/80" />
-                <span className="size-2.5 rounded-full bg-green-500/80" />
+                <span className="term-dot" style={{ background: 'var(--term-red)' }} />
+                <span className="term-dot" style={{ background: 'var(--term-amber)' }} />
+                <span className="term-dot" style={{ background: 'var(--term-green)' }} />
               </div>
-              <span className="text-[10px] font-mono text-muted-foreground">sh - npx codetrace</span>
+              <span className="text-[10px] font-mono text-muted-foreground">sh — npx codetrace</span>
               <div className="w-8" />
             </div>
 
@@ -182,11 +178,11 @@ export function MarketPage() {
             <div className="p-4 font-mono text-[11px] leading-relaxed text-left min-h-[220px] bg-black/40 overflow-y-auto">
               {activeTab === 'npx' && (
                 <div className="space-y-1 fade-in">
-                  <p className="text-muted-foreground">$ npx codetrace --profile=alex_dev</p>
-                  <p className="text-yellow-500/80">⚡ Initializing aggregate index...</p>
-                  <p className="text-green-500/80">✔ GitHub loaded (142 repos, 2,410 commits)</p>
-                  <p className="text-green-500/80">✔ LeetCode loaded (480 solved, 2,150 rating)</p>
-                  <p className="text-green-500/80">✔ Codeforces loaded (Specialist @ 1580)</p>
+                  <p className="text-muted-foreground"><span className="text-[var(--term-green)]">$</span> npx codetrace --profile=alex_dev</p>
+                  <p className="text-[var(--term-amber)]">⚡ Initializing aggregate index...</p>
+                  <p className="text-[var(--term-green)]">✔ GitHub loaded (142 repos, 2,410 commits)</p>
+                  <p className="text-[var(--term-green)]">✔ LeetCode loaded (480 solved, 2,150 rating)</p>
+                  <p className="text-[var(--term-green)]">✔ Codeforces loaded (Specialist @ 1580)</p>
                   <p className="text-muted-foreground">--------------------------------------</p>
                   <p className="text-primary font-bold">CodeTrace profile resolved in 42ms:</p>
                   <div className="pl-2 border-l border-primary/20 space-y-0.5 text-muted-foreground">
@@ -234,6 +230,9 @@ export function MarketPage() {
 }`}
                 </pre>
               )}
+
+              {/* Blinking prompt cursor */}
+              <p className="caret mt-1 text-[var(--term-green)]" aria-hidden>$</p>
             </div>
           </div>
         </div>
@@ -243,10 +242,10 @@ export function MarketPage() {
       <section id="demo-section" className="px-4 py-16 border-t border-border bg-secondary/10 relative">
         <div className="max-w-6xl mx-auto">
           <div className="text-center max-w-xl mx-auto mb-16 space-y-4">
-            <Badge variant="outline" className="font-mono text-[9px] uppercase tracking-widest text-primary border-primary/20">
-              Feature Spotlight
+            <Badge variant="outline" className="rounded-md font-mono text-[9px] uppercase tracking-widest text-[var(--term-green)] border-[var(--term-green)]/20">
+              {'> feature_spotlight'}
             </Badge>
-            <h2 className="text-3xl md:text-5xl font-display font-bold">
+            <h2 className="text-3xl md:text-5xl font-display font-bold tracking-tight">
               Premium UI.<br />
               Tailored for Code.
             </h2>
@@ -280,7 +279,7 @@ export function MarketPage() {
                   <div className="flex gap-2 text-[8px] font-mono text-muted-foreground">
                     <span className="flex items-center gap-1"><span className="size-2 bg-[#2db55d]/40 rounded-sm" /> GitHub</span>
                     <span className="flex items-center gap-1"><span className="size-2 bg-[#ffa116]/40 rounded-sm" /> LeetCode</span>
-                    <span className="flex items-center gap-1"><span className="size-2 bg-[#5B4638]/60 rounded-sm" /> CodeChef</span>
+                    <span className="flex items-center gap-1"><span className="size-2 bg-[#8c6d58]/60 rounded-sm" /> CodeChef</span>
                   </div>
                 </div>
                 
@@ -413,10 +412,10 @@ export function MarketPage() {
       {/* URL Link Builder Section (Interactive Widget) */}
       <section className="px-4 py-16 max-w-4xl mx-auto text-center space-y-8">
         <div className="space-y-3 max-w-xl mx-auto">
-          <Badge variant="outline" className="font-mono text-[9px] uppercase tracking-widest text-primary border-primary/20">
-            Create Your Link
+          <Badge variant="outline" className="rounded-md font-mono text-[9px] uppercase tracking-widest text-[var(--term-green)] border-[var(--term-green)]/20">
+            {'> create_your_link'}
           </Badge>
-          <h2 className="text-3xl md:text-5xl font-display font-extrabold tracking-tight">
+          <h2 className="text-3xl md:text-5xl font-display font-bold tracking-tight">
             Generate Your Card
           </h2>
           <p className="text-xs font-mono text-muted-foreground">
@@ -469,10 +468,10 @@ export function MarketPage() {
         {/* Share preview bar */}
         <div className="max-w-3xl mx-auto border border-primary/20 rounded-xl bg-primary/5 p-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-left min-w-0 w-full">
-            <span className="font-mono text-[10px] text-primary border border-primary/30 rounded px-1.5 py-0.5 select-none shrink-0">
+            <span className="font-mono text-[10px] text-[var(--term-green)] border border-[var(--term-green)]/30 rounded px-1.5 py-0.5 select-none shrink-0">
               GET
             </span>
-            <span className="font-mono text-xs text-foreground truncate select-all select-none w-full md:max-w-xl">
+            <span className="font-mono text-xs text-foreground truncate select-all w-full md:max-w-xl">
               {generatedUrl}
             </span>
           </div>
@@ -504,7 +503,7 @@ export function MarketPage() {
               asChild
             >
               <Link
-                to="/"
+                to="/app"
                 search={{
                   github: githubUser || undefined,
                   leetcode: leetcodeUser || undefined,
@@ -519,18 +518,18 @@ export function MarketPage() {
       </section>
 
       {/* Grid Border CTA block */}
-      <section className="px-4 py-20 border-t border-border bg-[linear-gradient(to_bottom,transparent_0%,rgba(100,255,218,0.03)_100%)] text-center relative overflow-hidden">
+      <section className="px-4 py-20 border-t border-border bg-[linear-gradient(to_bottom,transparent_0%,color-mix(in_srgb,var(--color-primary)_4%,transparent)_100%)] text-center relative overflow-hidden">
         <div className="max-w-2xl mx-auto space-y-6 relative z-10">
-          <h2 className="text-4xl md:text-6xl font-display font-extrabold tracking-tight">
+          <h2 className="text-4xl md:text-6xl font-display font-bold tracking-tight">
             Stop Stacking.<br />
-            Start Tracing.
+            Start <span className="glitch glow-text font-pixel text-primary" data-text="Tracing.">Tracing.</span>
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
             Get your developer footprints in one line of query. Free forever. Powered by serverless stats relays.
           </p>
           <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Button size="lg" className="font-mono font-semibold bg-primary text-primary-foreground hover:bg-primary/90 gap-2 w-full sm:w-auto" asChild>
-              <Link to="/">
+              <Link to="/app">
                 Launch Platform &rarr;
               </Link>
             </Button>
@@ -548,8 +547,9 @@ export function MarketPage() {
       <footer className="border-t border-border px-4 py-8 bg-black/60 font-mono text-[10px] text-muted-foreground">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
+            <span className="text-[var(--term-green)]">$</span>
             <span>&copy; {new Date().getFullYear()} CodeTrace.</span>
-            <span>All stats compiled dynamically.</span>
+            <span>all stats compiled dynamically<span className="caret" /></span>
           </div>
 
           <div className="flex flex-wrap gap-x-4 gap-y-1">
