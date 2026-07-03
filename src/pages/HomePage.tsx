@@ -1,10 +1,15 @@
-import { useEffect, useState } from 'react'
-import { ArrowLeft, ExternalLink } from 'lucide-react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { useQueryStates, parseAsString } from 'nuqs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import type { Usernames } from '../types/api'
+import { AppFooter } from '../components/AppFooter'
+import { Link, useNavigate } from '@tanstack/react-router'
+import type { Platform, Usernames } from '../types/api'
+import { splitAccounts } from '../lib/utils'
+import { getMyPublicProfile, savePrimaryProfileConfig, signInWithGoogle } from '../api/savedProfiles'
+import { usernamesToConfig } from '../lib/profileConfig'
+import { useAuth } from '../hooks/useAuth'
 import { SearchBar } from '../components/SearchBar'
 import { PlatformCard } from '../components/PlatformCard'
 import { GitHubCard } from '../components/GitHubCard'
@@ -13,9 +18,24 @@ import { CodeforcesCard } from '../components/CodeforcesCard'
 import { GFGCard } from '../components/GFGCard'
 import { CodeChefCard } from '../components/CodeChefCard'
 import { HackerRankCard } from '../components/HackerRankCard'
+import { TUFCard } from '../components/TUFCard'
 import { SummaryStrip } from '../components/SummaryStrip'
+import { PlatformLegend } from '../components/PlatformLegend'
+import { ShareFab } from '../components/ShareFab'
+
+const CARD_RENDERERS: Record<Platform, (username: string) => ReactNode> = {
+  github:     (u) => <GitHubCard username={u} />,
+  leetcode:   (u) => <LeetCodeCard username={u} />,
+  codeforces: (u) => <CodeforcesCard username={u} />,
+  gfg:        (u) => <GFGCard username={u} />,
+  codechef:   (u) => <CodeChefCard username={u} />,
+  hackerrank: (u) => <HackerRankCard username={u} />,
+  tuf:        (u) => <TUFCard username={u} />,
+}
 
 export function HomePage() {
+  const navigate = useNavigate()
+  const { user, isConfigured } = useAuth()
   const [query, setQuery] = useQueryStates({
     github: parseAsString.withDefault(''),
     leetcode: parseAsString.withDefault(''),
@@ -23,21 +43,30 @@ export function HomePage() {
     gfg: parseAsString.withDefault(''),
     codechef: parseAsString.withDefault(''),
     hackerrank: parseAsString.withDefault(''),
+    tuf: parseAsString.withDefault(''),
   }, { history: 'replace' })
 
+  const hasAnyQuery = !!(query.github || query.leetcode || query.codeforces || query.gfg || query.codechef || query.hackerrank || query.tuf)
+
   const [isSubmitted, setIsSubmitted] = useState(() => {
-    return !!(query.github || query.leetcode || query.codeforces || query.gfg || query.codechef || query.hackerrank)
+    return hasAnyQuery
+  })
+  const [saveState, setSaveState] = useState<{ loading: boolean; message: string | null; error: string | null }>({
+    loading: false,
+    message: null,
+    error: null,
   })
 
-  const usernames: Usernames | null = 
-    isSubmitted && (query.github || query.leetcode || query.codeforces || query.gfg || query.codechef || query.hackerrank)
+  const usernames: Usernames | null =
+    isSubmitted && hasAnyQuery
       ? {
           github: query.github,
           leetcode: query.leetcode,
           codeforces: query.codeforces,
           gfg: query.gfg,
           codechef: query.codechef,
-          hackerrank: query.hackerrank
+          hackerrank: query.hackerrank,
+          tuf: query.tuf,
         }
       : null
 
@@ -46,116 +75,180 @@ export function HomePage() {
     setQuery(null)
   }
 
+  const handleSaveProfile = async () => {
+    setSaveState({ loading: true, message: null, error: null })
+    try {
+      if (!isConfigured) {
+        throw new Error('Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.')
+      }
+      if (!user) {
+        await signInWithGoogle(window.location.href)
+        return
+      }
+
+      const profile = await getMyPublicProfile()
+      if (!profile) {
+        navigate({ to: '/onboarding' })
+        return
+      }
+
+      await savePrimaryProfileConfig(usernamesToConfig(query))
+      const url = `${window.location.origin}/${profile.username}`
+      await navigator.clipboard?.writeText(url).catch(() => undefined)
+      setSaveState({ loading: false, message: `Saved and copied ${url}`, error: null })
+    } catch (error) {
+      setSaveState({ loading: false, message: null, error: error instanceof Error ? error.message : String(error) })
+    }
+  }
+
+  // Short confirmation shown on the FAB; the detailed line below the toolbar
+  // carries any longer message (e.g. the Supabase config hint).
+  const fabToast = useMemo<{ text: string; tone: 'success' | 'error' } | null>(() => {
+    if (saveState.error) return { text: 'Couldn’t save — see note', tone: 'error' }
+    if (saveState.message) return { text: 'Saved · link copied', tone: 'success' }
+    return null
+  }, [saveState.error, saveState.message])
+
   useEffect(() => {
-    document.title = 'Coding Profile Stacker'
+    document.title = 'CodeTrace'
   }, [])
 
   return (
     <div className="px-4 py-12 md:px-8">
-      <div className="max-w-5xl mx-auto">
+      <div className="mx-auto max-w-5xl">
 
-        {/* Header */}
-        <header className="mb-12 text-center">
-          <h1 className="text-5xl md:text-7xl font-display font-bold text-foreground tracking-tight leading-none mb-4">
-            Coding Profile<br />
-            <span style={{ WebkitTextStroke: '1px var(--color-primary)', color: 'transparent' }}>
-              Stacker
-            </span>
-          </h1>
-          <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
-            Aggregate your coding footprint across GitHub, LeetCode, Codeforces, GFG, CodeChef, and HackerRank.
-          </p>
-        </header>
+        {/* Header — a boot-sequence terminal on the landing view, a compact
+            window titlebar once results load */}
+        {!usernames ? (
+          <header className="rise-in relative mb-12">
+            <div className="term-window scanlines mx-auto max-w-2xl">
+              <div className="term-bar">
+                <span className="term-dot" style={{ background: 'var(--term-red)' }} />
+                <span className="term-dot" style={{ background: 'var(--term-amber)' }} />
+                <span className="term-dot" style={{ background: 'var(--term-green)' }} />
+                <span className="ml-2 truncate font-mono text-[11px] text-muted-foreground/80">
+                  ~/codetrace — zsh — 80×24
+                </span>
+                <span className="ml-auto inline-flex shrink-0 items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--term-green)]">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--term-green)] opacity-75" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--term-green)]" />
+                  </span>
+                  online
+                </span>
+              </div>
+
+              <div className="scan-sweep crt-grid px-6 py-9 md:px-10 md:py-11">
+                {/* glitching pixel wordmark */}
+                <h1
+                  className="glitch glow-text font-pixel text-[2.75rem] leading-none text-foreground md:text-6xl"
+                  data-text="CodeTrace"
+                >
+                  CodeTrace
+                </h1>
+
+                <p className="caret mt-5 max-w-lg font-mono text-sm leading-relaxed text-muted-foreground">
+                  Aggregate your coding footprint across GitHub, LeetCode, Codeforces, GFG, CodeChef, HackerRank &amp; TUF
+                </p>
+              </div>
+            </div>
+          </header>
+        ) : (
+          <header className="rise-in relative mb-10">
+            <div className="term-window">
+              <div className="term-bar flex-wrap gap-y-2">
+                <span className="term-dot" style={{ background: 'var(--term-red)' }} />
+                <span className="term-dot" style={{ background: 'var(--term-amber)' }} />
+                <span className="term-dot" style={{ background: 'var(--term-green)' }} />
+                <Link
+                  to="/"
+                  className="glow-text ml-2 font-pixel text-base text-foreground transition-opacity hover:opacity-80"
+                >
+                  CodeTrace
+                </Link>
+                <div className="ml-auto flex items-center gap-1.5">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleSearchAgain}
+                    className="font-mono text-xs text-muted-foreground hover:text-primary"
+                  >
+                    <ArrowLeft data-icon="inline-start" />
+                    [esc] search
+                  </Button>
+                  {/* Primary CTA — the unified profile is the point of the app */}
+                  <Button
+                    asChild
+                    className="group h-8 gap-2 rounded-md px-4 font-mono text-xs shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/40"
+                  >
+                    <Link to="/profile" search={(prev) => prev}>
+                      ./unified_profile
+                      <ArrowRight data-icon="inline-end" className="transition-transform group-hover:translate-x-0.5" />
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </header>
+        )}
 
         {!usernames ? (
           <div className="fade-in">
             <SearchBar onSubmit={() => setIsSubmitted(true)} />
-            <p className="text-center text-[10px] font-mono text-muted-foreground/50 mt-4">
-              Leave any field empty to skip that platform.
-            </p>
+            <PlatformLegend />
           </div>
         ) : (
-          <div className="fade-in">
-            {/* Back + active usernames */}
-            <div className="flex items-center justify-between mb-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleSearchAgain}
-                className="font-mono text-xs text-muted-foreground hover:text-primary"
-              >
-                <ArrowLeft data-icon="inline-start" />
-                Search again
-              </Button>
-              <div className="flex gap-2 flex-wrap justify-end">
+          <div className="fade-in flex flex-col gap-8">
+            {/* Active handles being tracked */}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-[11px]">
+              <span className="text-[var(--term-green)]">$ tracking --live</span>
+              <div className="flex flex-wrap gap-2">
                 {(Object.entries(usernames) as [keyof Usernames, string][])
-                  .filter(([, v]) => v)
-                  .map(([k, v]) => (
-                    <Badge key={k} variant="outline" className="text-[10px] font-mono">{v}</Badge>
+                  .flatMap(([k, v]) => splitAccounts(v).map((u) => [k, u] as const))
+                  .map(([k, u]) => (
+                    <Badge key={`${k}-${u}`} variant="outline" className="rounded-md font-mono text-[10px]">
+                      <span className="text-muted-foreground/50">{k}/</span>{u}
+                    </Badge>
                   ))}
               </div>
             </div>
+            {(saveState.message || saveState.error) && (
+              <p className={`font-mono text-xs ${saveState.error ? 'text-destructive' : 'text-primary'}`}>
+                {saveState.error ?? saveState.message}
+              </p>
+            )}
 
             <SummaryStrip usernames={usernames} />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {usernames.github && (
-                <PlatformCard platform="github" username={usernames.github} animIndex={0}
-                  detailLink={`/github/${usernames.github}`}>
-                  <GitHubCard username={usernames.github} />
-                </PlatformCard>
-              )}
-              {usernames.leetcode && (
-                <PlatformCard platform="leetcode" username={usernames.leetcode} animIndex={1}
-                  detailLink={`/leetcode/${usernames.leetcode}`}>
-                  <LeetCodeCard username={usernames.leetcode} />
-                </PlatformCard>
-              )}
-              {usernames.codeforces && (
-                <PlatformCard platform="codeforces" username={usernames.codeforces} animIndex={2}
-                  detailLink={`/codeforces/${usernames.codeforces}`}>
-                  <CodeforcesCard username={usernames.codeforces} />
-                </PlatformCard>
-              )}
-              {usernames.gfg && (
-                <PlatformCard platform="gfg" username={usernames.gfg} animIndex={3}
-                  detailLink={`/gfg/${usernames.gfg}`}>
-                  <GFGCard username={usernames.gfg} />
-                </PlatformCard>
-              )}
-              {usernames.codechef && (
-                <PlatformCard platform="codechef" username={usernames.codechef} animIndex={4}
-                  detailLink={`/codechef/${usernames.codechef}`}>
-                  <CodeChefCard username={usernames.codechef} />
-                </PlatformCard>
-              )}
-              {usernames.hackerrank && (
-                <PlatformCard platform="hackerrank" username={usernames.hackerrank} animIndex={5}
-                  detailLink={`/hackerrank/${usernames.hackerrank}`}>
-                  <HackerRankCard username={usernames.hackerrank} />
-                </PlatformCard>
-              )}
+            {/* One card per stacked account, in canonical platform order */}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {(Object.entries(usernames) as [Platform, string][])
+                .flatMap(([platform, value]) =>
+                  splitAccounts(value).map((username) => ({ platform, username })),
+                )
+                .map(({ platform, username }, i) => (
+                  <PlatformCard
+                    key={`${platform}-${username}`}
+                    platform={platform}
+                    username={username}
+                    animIndex={i}
+                    detailLink={`/${platform}/${username}`}
+                  >
+                    {CARD_RENDERERS[platform](username)}
+                  </PlatformCard>
+                ))}
             </div>
 
-            {/* API docs footer */}
-            <Separator className="mt-10" />
-            <div className="pt-6 flex flex-wrap gap-4 justify-center">
-              {[
-                { name: 'GitHub API', url: 'https://github-stats.tashif.codes/docs' },
-                { name: 'LeetCode API', url: 'https://leetcode-stats.tashif.codes/docs' },
-                { name: 'Codeforces API', url: 'https://codeforces-stats.tashif.codes/docs' },
-                { name: 'GFG API', url: 'https://gfg-stats.tashif.codes/docs' },
-                { name: 'CodeChef API', url: 'https://codechef-stats-api-two.vercel.app/' },
-                { name: 'HackerRank API', url: 'https://hackerrank-stats-api.vercel.app/docs' },
-              ].map(api => (
-                <Button key={api.name} variant="link" size="xs" asChild className="text-muted-foreground/50 hover:text-primary">
-                  <a href={api.url} target="_blank" rel="noreferrer">
-                    {api.name}
-                    <ExternalLink data-icon="inline-end" />
-                  </a>
-                </Button>
-              ))}
-            </div>
+            {/* Common terminal footer */}
+            <AppFooter />
+
+            {/* Floating share — save the unified profile & copy its link */}
+            <ShareFab
+              onClick={handleSaveProfile}
+              busy={saveState.loading}
+              toast={fabToast}
+              label={user ? 'Save & share profile' : 'Sign in to save & share'}
+            />
           </div>
         )}
       </div>

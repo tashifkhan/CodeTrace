@@ -7,7 +7,6 @@ export function useCountUp(target: number, duration = 1200, enabled = true): num
 
   useEffect(() => {
     if (!enabled || target === 0) {
-      setValue(0);
       return;
     }
 
@@ -31,5 +30,5 @@ export function useCountUp(target: number, duration = 1200, enabled = true): num
     return () => cancelAnimationFrame(rafRef.current);
   }, [target, duration, enabled]);
 
-  return value;
+  return enabled && target !== 0 ? value : 0;
 }

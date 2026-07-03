@@ -1,20 +1,9 @@
 import type { ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
 import { ArrowRight } from 'lucide-react'
-import { Card, CardHeader, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { PlatformIcon } from './PlatformIcon'
+import { PLATFORM_ACCENT, PLATFORM_LABEL } from './platformMeta'
 import type { Platform } from '../types/api'
-
-const PLATFORM_META: Record<Platform, { label: string; color: string }> = {
-  github:     { label: 'GitHub',        color: 'var(--platform-github)' },
-  leetcode:   { label: 'LeetCode',      color: 'var(--platform-leetcode)' },
-  codeforces: { label: 'Codeforces',    color: 'var(--platform-codeforces)' },
-  gfg:        { label: 'GeeksForGeeks', color: 'var(--platform-gfg)' },
-  codechef:   { label: 'CodeChef',      color: 'var(--platform-codechef)' },
-  hackerrank: { label: 'HackerRank',    color: 'var(--platform-hackerrank)' },
-}
 
 interface Props {
   platform: Platform
@@ -24,44 +13,42 @@ interface Props {
   detailLink?: string
 }
 
+/** Editorial wrapper for a platform result card on the home page: a
+ *  platform-tinted top accent, a header with the platform icon + label and
+ *  the username in mono, and a quiet "Details →" link. */
 export function PlatformCard({ platform, username, animIndex, children, detailLink }: Props) {
-  const { label, color } = PLATFORM_META[platform]
+  const accent = PLATFORM_ACCENT[platform]
+  const label = PLATFORM_LABEL[platform]
 
   return (
-    <Card
-      className="card-slide-up overflow-hidden"
-      style={{
-        animationDelay: `${animIndex * 80}ms`,
-      }}
+    <div
+      className="card-slide-up group relative flex flex-col overflow-hidden rounded-xl border border-border/60 bg-card/30 transition-colors hover:border-border"
+      style={{ animationDelay: `${animIndex * 80}ms` }}
     >
-      <CardHeader className="border-b">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5">
-            <Badge
-              variant="outline"
-              className="gap-1.5"
-              style={{ color, borderColor: `color-mix(in srgb, ${color} 30%, transparent)` }}
-            >
-              <PlatformIcon platform={platform} className="size-3" />
-              {label}
-            </Badge>
-            <span className="text-xs font-mono text-muted-foreground truncate max-w-[120px]">
-              {username}
-            </span>
-          </div>
-          {detailLink && (
-            <Button variant="ghost" size="xs" asChild>
-              <Link to={detailLink}>
-                Full details
-                <ArrowRight data-icon="inline-end" />
-              </Link>
-            </Button>
-          )}
+      {/* platform-tinted top accent */}
+      <div className="h-px w-full" style={{ background: `linear-gradient(90deg, ${accent}, color-mix(in srgb, ${accent} 20%, transparent) 70%, transparent)` }} />
+
+      <div className="flex items-center justify-between gap-2 border-b border-border/50 px-5 py-3.5">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <PlatformIcon platform={platform} className="size-3.5 shrink-0" />
+          <span className="text-sm font-medium text-foreground">{label}</span>
+          <span className="truncate font-mono text-[11px] text-muted-foreground">
+            {username}
+          </span>
         </div>
-      </CardHeader>
-      <CardContent className="flex-1 !p-0">
+        {detailLink && (
+          <Link
+            to={detailLink}
+            className="link-quiet inline-flex shrink-0 items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground hover:text-primary"
+          >
+            Details
+            <ArrowRight className="size-3" />
+          </Link>
+        )}
+      </div>
+      <div className="flex-1">
         {children}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

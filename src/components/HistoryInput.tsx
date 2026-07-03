@@ -15,21 +15,24 @@ interface HistoryInputProps {
   value: string
   onChange: (val: string) => void
   placeholder?: string
+  /** Platform accent color for the focus ring (CSS color). */
+  accent?: string
 }
 
-export function HistoryInput({ platform, value, onChange, placeholder }: HistoryInputProps) {
+export function HistoryInput({ platform, value, onChange, placeholder, accent }: HistoryInputProps) {
   const { history, removeHistory } = useInputHistory(platform)
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="relative flex items-center w-full">
+    <div className="relative flex w-full items-center">
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         autoComplete="off"
         spellCheck={false}
-        className="font-mono bg-muted/30 border-transparent focus-visible:bg-transparent transition-colors pr-10"
+        className="platform-input font-mono bg-muted/30 border-transparent transition-colors focus-visible:bg-transparent pr-10"
+        style={accent ? { ['--row-accent' as string]: accent } : undefined}
       />
       {history.length > 0 && (
         <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -42,21 +45,24 @@ export function HistoryInput({ platform, value, onChange, placeholder }: History
               <History className="size-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 font-mono text-xs bg-background/90 backdrop-blur-md border-white/10 rounded-xl shadow-2xl p-2 animate-in fade-in zoom-in-95">
+          <DropdownMenuContent align="end" className="w-56 rounded-xl border-white/10 bg-background/90 p-2 font-mono text-xs shadow-2xl backdrop-blur-md animate-in fade-in zoom-in-95">
+            <div className="px-3 pb-1.5 pt-1 text-[9px] uppercase tracking-[0.2em] text-muted-foreground/50">
+              Recent {platform}
+            </div>
             {history.map((item) => (
               <DropdownMenuItem
                 key={item}
-                className="flex items-center justify-between cursor-pointer rounded-lg hover:bg-muted/50 transition-colors py-1.5 px-3 group"
+                className="group flex cursor-pointer items-center justify-between rounded-lg py-1.5 px-3 transition-colors hover:bg-muted/50"
                 onSelect={() => {
                   onChange(item)
                   setOpen(false)
                 }}
               >
-                <span className="truncate text-muted-foreground group-hover:text-foreground transition-colors">{item}</span>
+                <span className="truncate text-muted-foreground transition-colors group-hover:text-foreground">{item}</span>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-6 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive hover:bg-destructive/10 shrink-0 transition-all"
+                  className="size-6 shrink-0 text-muted-foreground opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
                   onClick={(e) => {
                     e.stopPropagation()
                     removeHistory(item)
