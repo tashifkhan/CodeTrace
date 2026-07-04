@@ -6,15 +6,17 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
 } from 'recharts'
-import { Flame, Award } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
+import { Flame, Award, Link2, LogIn, UserCircle2 } from 'lucide-react'
+import { Link, useNavigate } from '@tanstack/react-router'
 
 import type { Platform, Usernames } from '@/types/api'
 import type { PlatformCategory } from '@/types/unified'
 import { useProfileCards } from '@/hooks/useCards'
 import { fetchGitHubEngineering, type GitHubEngineering } from '@/api/github'
-import { cn, splitAccounts } from '@/lib/utils'
-import { EMPTY_USERNAMES } from '@/lib/profileConfig'
+import { useAuth } from '@/hooks/useAuth'
+import { getMyPublicProfile, savePrimaryProfileConfig } from '@/api/savedProfiles'
+import { cn, shareOrCopyUrl, splitAccounts } from '@/lib/utils'
+import { EMPTY_USERNAMES, usernamesToConfig } from '@/lib/profileConfig'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -528,26 +530,39 @@ export function ProfilePage({ usernames: savedUsernames, owner }: ProfilePagePro
   }, [profileName])
 
   // ── Share ────────────────────────────────────────────────────
-  // Native share sheet where available (mobile), clipboard copy otherwise.
+  const navigate = useNavigate()
+  const { user } = useAuth()
   const [shareToast, setShareToast] = useState<{ text: string; tone: 'success' | 'error' } | null>(null)
-  const handleShare = async () => {
-    const url = window.location.href
+  const [isSavingShort, setIsSavingShort] = useState(false)
+
+  // Long URL — the current location, params and all.
+  const handleShareLong = async () => {
+    const result = await shareOrCopyUrl(window.location.href, `${profileName} — CodeTrace`)
+    if (result === 'copied') setShareToast({ text: 'Link copied', tone: 'success' })
+    if (result === 'failed') setShareToast({ text: 'Copy failed', tone: 'error' })
+  }
+
+  // Short URL — publish these params as the signed-in user's saved config and
+  // copy /<userid>. Users without a userid detour through /account and return.
+  const handleShortUrl = async () => {
+    setIsSavingShort(true)
     try {
-      if (navigator.share) {
-        await navigator.share({ title: `${profileName} — CodeTrace`, url })
+      const profile = await getMyPublicProfile()
+      if (!profile) {
+        navigate({
+          to: '/account',
+          search: { next: `${window.location.pathname}${window.location.search}` },
+        })
         return
       }
-      await navigator.clipboard.writeText(url)
-      setShareToast({ text: 'Link copied', tone: 'success' })
+      await savePrimaryProfileConfig(usernamesToConfig(profileUsernames))
+      const url = `${window.location.origin}/${profile.username}`
+      await navigator.clipboard?.writeText(url).catch(() => undefined)
+      setShareToast({ text: `Short url copied · /${profile.username}`, tone: 'success' })
     } catch (err) {
-      // Cancelling the native share sheet throws AbortError — not a failure.
-      if (err instanceof Error && err.name === 'AbortError') return
-      try {
-        await navigator.clipboard.writeText(url)
-        setShareToast({ text: 'Link copied', tone: 'success' })
-      } catch {
-        setShareToast({ text: 'Copy failed', tone: 'error' })
-      }
+      setShareToast({ text: err instanceof Error ? err.message : String(err), tone: 'error' })
+    } finally {
+      setIsSavingShort(false)
     }
   }
 
@@ -1239,13 +1254,47 @@ export function ProfilePage({ usernames: savedUsernames, owner }: ProfilePagePro
       {/* Terminal boot loader — reports source-fetch progress, self-dismisses */}
       <ProfileLoader cards={cards} />
 
-      {/* Floating share — copies this profile's link (or opens the native sheet) */}
-      <ShareFab
-        onClick={handleShare}
-        label="Share profile"
-        toast={shareToast}
-        onToastDone={() => setShareToast(null)}
-      />
+      {/* Floating share. A saved /userid page is already the short URL, so it
+          shares directly; the params view offers long URL vs short URL. */}
+      {owner ? (
+        <ShareFab
+          onClick={() => void handleShareLong()}
+          label="Share profile"
+          toast={shareToast}
+          onToastDone={() => setShareToast(null)}
+        />
+      ) : (
+        <ShareFab
+          label="Share profile"
+          busy={isSavingShort}
+          toast={shareToast}
+          onToastDone={() => setShareToast(null)}
+          actions={[
+            {
+              key: 'params',
+              label: 'share url with these params',
+              icon: Link2,
+              onClick: () => void handleShareLong(),
+            },
+            user
+              ? {
+                  key: 'short',
+                  label: 'save & copy short url',
+                  icon: UserCircle2,
+                  onClick: () => void handleShortUrl(),
+                }
+              : {
+                  key: 'login',
+                  label: 'login for short url',
+                  icon: LogIn,
+                  onClick: () => navigate({
+                    to: '/login',
+                    search: { next: `${window.location.pathname}${window.location.search}` },
+                  }),
+                },
+          ]}
+        />
+      )}
     </div>
   )
 }
