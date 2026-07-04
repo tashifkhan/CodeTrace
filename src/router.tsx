@@ -11,8 +11,9 @@ import { TUFPage } from '@/pages/TUFPage'
 import { ProfilePage } from '@/pages/ProfilePage'
 import { MarketPage } from '@/pages/MarketPage'
 import { LoginPage } from '@/pages/LoginPage'
-import { OnboardingPage } from '@/pages/OnboardingPage'
+import { AccountPage } from '@/pages/AccountPage'
 import { PublicProfilePage } from '@/pages/PublicProfilePage'
+import { NotFoundPage } from '@/pages/NotFoundPage'
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -86,12 +87,33 @@ export const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
   component: LoginPage,
+  // Where to continue after a successful sign-in (e.g. /links).
+  validateSearch: (search: Record<string, unknown>): { next?: string } => {
+    const next = typeof search.next === 'string' && search.next.startsWith('/') ? search.next : undefined
+    return next ? { next } : {}
+  },
 })
 
+// Where to return after claiming a userid (e.g. the dashboard results the
+// visitor was about to save — including its ?handles query string).
+const accountSearch = (search: Record<string, unknown>): { next?: string } => {
+  const next = typeof search.next === 'string' && search.next.startsWith('/') ? search.next : undefined
+  return next ? { next } : {}
+}
+
+export const accountRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/account',
+  component: AccountPage,
+  validateSearch: accountSearch,
+})
+
+// Legacy alias — the old onboarding URL now serves the full account page.
 export const onboardingRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/onboarding',
-  component: OnboardingPage,
+  component: AccountPage,
+  validateSearch: accountSearch,
 })
 
 export const publicProfileRoute = createRoute({
@@ -104,6 +126,7 @@ const routeTree = rootRoute.addChildren([
   indexRoute,
   appRoute,
   loginRoute,
+  accountRoute,
   onboardingRoute,
   githubRoute,
   leetcodeRoute,
@@ -116,7 +139,10 @@ const routeTree = rootRoute.addChildren([
   publicProfileRoute,
 ])
 
-export const router = createRouter({ routeTree })
+export const router = createRouter({
+  routeTree,
+  defaultNotFoundComponent: NotFoundPage,
+})
 
 declare module '@tanstack/react-router' {
   interface Register {

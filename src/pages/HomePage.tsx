@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Link2, LogIn, UserCircle2 } from 'lucide-react'
 import { useQueryStates, parseAsString } from 'nuqs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { AppFooter } from '../components/AppFooter'
 import { Link, useNavigate } from '@tanstack/react-router'
 import type { Platform, Usernames } from '../types/api'
-import { splitAccounts } from '../lib/utils'
+import { shareOrCopyUrl, splitAccounts } from '../lib/utils'
 import { getMyPublicProfile, savePrimaryProfileConfig, signInWithGoogle } from '../api/savedProfiles'
 import { usernamesToConfig } from '../lib/profileConfig'
 import { useAuth } from '../hooks/useAuth'
@@ -75,6 +75,15 @@ export function HomePage() {
     setQuery(null)
   }
 
+  // Share the current view as-is — the long URL with every ?platform=handle
+  // param embedded in it.
+  const [shareToast, setShareToast] = useState<{ text: string; tone: 'success' | 'error' } | null>(null)
+  const handleShareParams = async () => {
+    const result = await shareOrCopyUrl(window.location.href, 'CodeTrace')
+    if (result === 'copied') setShareToast({ text: 'Link with params copied', tone: 'success' })
+    if (result === 'failed') setShareToast({ text: 'Copy failed', tone: 'error' })
+  }
+
   const handleSaveProfile = async () => {
     setSaveState({ loading: true, message: null, error: null })
     try {
@@ -88,7 +97,11 @@ export function HomePage() {
 
       const profile = await getMyPublicProfile()
       if (!profile) {
-        navigate({ to: '/onboarding' })
+        // Claim a userid first — come back to these exact handles after.
+        navigate({
+          to: '/account',
+          search: { next: `${window.location.pathname}${window.location.search}` },
+        })
         return
       }
 
@@ -121,6 +134,19 @@ export function HomePage() {
             window titlebar once results load */}
         {!usernames ? (
           <header className="rise-in relative mb-12">
+            {/* Quiet auth nav above the boot terminal */}
+            <nav className="mx-auto mb-4 flex max-w-2xl items-center justify-end gap-4 font-mono text-[11px]">
+              {user ? (
+                <Link to="/account" className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-primary">
+                  <UserCircle2 className="size-3" />account
+                </Link>
+              ) : (
+                <Link to="/login" className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-primary">
+                  <LogIn className="size-3" />
+                  <span className="text-[var(--term-green)]">$</span> login
+                </Link>
+              )}
+            </nav>
             <div className="term-window scanlines mx-auto max-w-2xl">
               <div className="term-bar">
                 <span className="term-dot" style={{ background: 'var(--term-red)' }} />
@@ -148,7 +174,7 @@ export function HomePage() {
                 </h1>
 
                 <p className="caret mt-5 max-w-lg font-mono text-sm leading-relaxed text-muted-foreground">
-                  Aggregate your coding footprint across GitHub, LeetCode, Codeforces, GFG, CodeChef, HackerRank &amp; TUF
+                  Track your coding footprint across GitHub, LeetCode, Codeforces, GFG, CodeChef, HackerRank &amp; takeUforward — DSA sheet progress with topic-level breakdown, submission heatmaps, and streak tracking
                 </p>
               </div>
             </div>
@@ -196,6 +222,7 @@ export function HomePage() {
           <div className="fade-in">
             <SearchBar onSubmit={() => setIsSubmitted(true)} />
             <PlatformLegend />
+            <AppFooter />
           </div>
         ) : (
           <div className="fade-in flex flex-col gap-8">
@@ -242,12 +269,36 @@ export function HomePage() {
             {/* Common terminal footer */}
             <AppFooter />
 
-            {/* Floating share — save the unified profile & copy its link */}
+            {/* Floating share — long URL with params, or the short userid URL */}
             <ShareFab
-              onClick={handleSaveProfile}
+              label="Share"
               busy={saveState.loading}
-              toast={fabToast}
-              label={user ? 'Save & share profile' : 'Sign in to save & share'}
+              toast={fabToast ?? shareToast}
+              onToastDone={() => setShareToast(null)}
+              actions={[
+                {
+                  key: 'params',
+                  label: 'share url with these params',
+                  icon: Link2,
+                  onClick: () => void handleShareParams(),
+                },
+                user
+                  ? {
+                      key: 'short',
+                      label: 'save & copy short url',
+                      icon: UserCircle2,
+                      onClick: () => void handleSaveProfile(),
+                    }
+                  : {
+                      key: 'login',
+                      label: 'login for short url',
+                      icon: LogIn,
+                      onClick: () => navigate({
+                        to: '/login',
+                        search: { next: `${window.location.pathname}${window.location.search}` },
+                      }),
+                    },
+              ]}
             />
           </div>
         )}

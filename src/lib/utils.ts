@@ -19,6 +19,27 @@ export function formatDisplayDate(
   return date.toLocaleDateString('en', options)
 }
 
+/** Native share sheet where available (mobile), clipboard copy otherwise.
+ *  Cancelling the sheet counts as 'shared' — it isn't a failure to surface. */
+export async function shareOrCopyUrl(url: string, title: string): Promise<'shared' | 'copied' | 'failed'> {
+  try {
+    if (navigator.share) {
+      await navigator.share({ title, url })
+      return 'shared'
+    }
+    await navigator.clipboard.writeText(url)
+    return 'copied'
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') return 'shared'
+    try {
+      await navigator.clipboard.writeText(url)
+      return 'copied'
+    } catch {
+      return 'failed'
+    }
+  }
+}
+
 /** Split a comma-separated account list ("user1, user2") into unique handles.
  *  Platform query params carry multiple stacked accounts this way. */
 export function splitAccounts(value: string | null | undefined): string[] {

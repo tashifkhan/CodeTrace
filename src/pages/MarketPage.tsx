@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { API_LINKS } from '@/lib/apiLinks'
+import { PlatformIcon } from '@/components/PlatformIcon'
 
 type TabType = 'npx' | 'curl' | 'api.json'
 type DemoHeatmapCell = { type: 'github' | 'leetcode' | 'codechef' | 'empty'; intensity: number }
@@ -26,9 +28,9 @@ for (let index = 0; index < 98; index += 1) {
 
 export function MarketPage() {
   const [activeTab, setActiveTab] = useState<TabType>('npx')
-  const [githubUser, setGithubUser] = useState('alex_dev')
-  const [leetcodeUser, setLeetcodeUser] = useState('alex_dev')
-  const [codeforcesUser, setCodeforcesUser] = useState('alex_cf')
+  const [githubUser, setGithubUser] = useState('tashifkhan')
+  const [leetcodeUser, setLeetcodeUser] = useState('khan-tashif')
+  const [codeforcesUser, setCodeforcesUser] = useState('tourist')
   
   const [copied, setCopied] = useState(false)
 
@@ -72,6 +74,12 @@ export function MarketPage() {
             >
               <span className="text-[var(--term-green)]">$</span> dashboard
             </Link>
+            <Link
+              to="/login"
+              className="text-xs font-mono text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <span className="text-[var(--term-green)]">$</span> login
+            </Link>
             <Button
               variant="outline"
               size="sm"
@@ -114,16 +122,21 @@ export function MarketPage() {
               { icon: SiCodeforces, color: 'var(--platform-codeforces)', label: 'Codeforces' },
               { icon: SiGeeksforgeeks, color: 'var(--platform-gfg)', label: 'GeeksForGeeks' },
               { icon: SiCodechef, color: 'var(--platform-codechef)', label: 'CodeChef' },
-              { icon: SiHackerrank, color: 'var(--platform-hackerrank)', label: 'HackerRank' }
+              { icon: SiHackerrank, color: 'var(--platform-hackerrank)', label: 'HackerRank' },
+              { icon: 'tuf', color: 'var(--platform-tuf)', label: 'takeUforward' }
             ].map((p) => (
-              <span 
-                key={p.label} 
+              <span
+                key={p.label}
                 aria-label={p.label}
-                className="p-1.5 rounded bg-card border border-border/50 flex items-center justify-center transition-all hover:scale-110 hover:border-primary/30" 
+                className="p-1.5 rounded bg-card border border-border/50 flex items-center justify-center transition-all hover:scale-110 hover:border-primary/30"
                 style={{ color: p.color }}
                 title={p.label}
               >
-                <p.icon className="size-4" />
+                {p.icon === 'tuf' ? (
+                  <PlatformIcon platform="tuf" className="size-4" />
+                ) : (
+                  <p.icon className="size-4" />
+                )}
               </span>
             ))}
           </div>
@@ -389,12 +402,17 @@ export function MarketPage() {
                   { name: 'GeeksForGeeks', desc: 'Total problems solved, overall score index, coding keys, and platform rank indicators.', color: 'var(--platform-gfg)', logo: SiGeeksforgeeks },
                   { name: 'CodeChef', desc: 'Star badge levels, active ratings, performance curves, global ranks, and heatmaps.', color: 'var(--platform-codechef)', logo: SiCodechef },
                   { name: 'HackerRank', desc: 'Platform badges, certified star ranks across topics, and solved counts.', color: 'var(--platform-hackerrank)', logo: SiHackerrank },
+                  { name: 'takeUforward', desc: 'Structured DSA sheet progress, topic-level subject analysis, submission heatmaps, and streak tracking.', color: 'var(--platform-tuf)', logo: 'tuf' as const },
                 ].map((plat, idx) => (
                   <Card key={idx} className="border border-border/50 bg-secondary/20 hover:border-primary/20 hover:bg-secondary/40 transition-all duration-300 group">
                     <CardContent className="p-4 space-y-3">
                       <div className="flex items-center gap-3">
                         <div className="p-1.5 rounded" style={{ color: plat.color, backgroundColor: `color-mix(in srgb, ${plat.color} 10%, transparent)` }}>
-                          <plat.logo className="size-4" />
+                          {plat.logo === 'tuf' ? (
+                            <PlatformIcon platform="tuf" className="size-4" />
+                          ) : (
+                            <plat.logo className="size-4" />
+                          )}
                         </div>
                         <h4 className="font-display font-bold text-sm text-foreground">{plat.name}</h4>
                       </div>
@@ -552,11 +570,12 @@ export function MarketPage() {
             <span>all stats compiled dynamically<span className="caret" /></span>
           </div>
 
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
-            <a href="https://github-stats.tashif.codes/docs" target="_blank" rel="noreferrer" className="hover:text-primary transition-colors">GitHub API Docs</a>
-            <a href="https://leetcode-stats.tashif.codes/" target="_blank" rel="noreferrer" className="hover:text-primary transition-colors">LeetCode API Docs</a>
-            <a href="https://codeforces-stats.tashif.codes/docs" target="_blank" rel="noreferrer" className="hover:text-primary transition-colors">CF API Docs</a>
-            <a href="https://gfg-stats.tashif.codes/docs" target="_blank" rel="noreferrer" className="hover:text-primary transition-colors">GFG API Docs</a>
+          <div className="flex flex-wrap justify-center gap-x-4 gap-y-1">
+            {API_LINKS.map((l) => (
+              <a key={l.name} href={l.url} target="_blank" rel="noreferrer" className="hover:text-primary transition-colors">
+                {l.name}
+              </a>
+            ))}
           </div>
         </div>
       </footer>
