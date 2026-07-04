@@ -6,6 +6,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthProvider } from '@/hooks/AuthProvider'
 import { router } from './router'
 import './index.css'
+import './lib/posthog'
 
 const queryClient = new QueryClient({
   defaultOptions: {
