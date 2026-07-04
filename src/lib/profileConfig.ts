@@ -14,8 +14,9 @@ export const EMPTY_USERNAMES: Usernames = {
 }
 
 export const RESERVED_PROFILE_USERNAMES = new Set([
-  'api', 'app', 'auth', 'codechef', 'codeforces', 'dashboard', 'gfg', 'github',
-  'hackerrank', 'login', 'logout', 'me', 'profile', 'settings', 'tuf', 'u', 'username',
+  'account', 'api', 'app', 'auth', 'codechef', 'codeforces', 'dashboard', 'docs',
+  'gfg', 'github', 'hackerrank', 'leetcode', 'link', 'links', 'login', 'logout',
+  'me', 'onboarding', 'profile', 's', 'settings', 'share', 'tuf', 'u', 'username',
 ])
 
 export function normalizeProfileUsername(value: string) {

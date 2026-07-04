@@ -15,7 +15,7 @@ export interface PublicProfileRecord {
   config: ProfileConfig
 }
 
-function asProfileConfig(value: Json): ProfileConfig {
+export function asProfileConfig(value: Json): ProfileConfig {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
   const config: ProfileConfig = {}
   for (const [platform, accounts] of Object.entries(value)) {
@@ -85,6 +85,22 @@ export async function saveProfileUsername(usernameInput: string) {
   return data
 }
 
+export async function getMyPrimaryProfileConfig(): Promise<ProfileConfig | null> {
+  const client = requireSupabase()
+  const { data: auth, error: authError } = await client.auth.getUser()
+  if (authError) throw authError
+  if (!auth.user) return null
+
+  const { data, error } = await client
+    .from('profile_configs')
+    .select('config')
+    .eq('user_id', auth.user.id)
+    .eq('is_primary', true)
+    .maybeSingle()
+  if (error) throw error
+  return data ? asProfileConfig(data.config) : null
+}
+
 export async function savePrimaryProfileConfig(config: ProfileConfig) {
   if (!hasConfigAccounts(config)) throw new Error('Add at least one account before saving a profile.')
 
@@ -141,13 +157,14 @@ export async function getPublicProfileByUsername(usernameInput: string): Promise
     .eq('is_public', true)
     .maybeSingle()
   if (configError) throw configError
-  if (!config) return null
 
+  // A claimed handle with no saved accounts is still a real profile — return
+  // it with an empty config so the UI can prompt instead of 404ing.
   return {
     id: profile.id,
     username: profile.username,
     displayName: profile.display_name,
     avatarUrl: profile.avatar_url,
-    config: asProfileConfig(config.config),
+    config: config ? asProfileConfig(config.config) : {},
   }
 }

@@ -82,6 +82,14 @@ export interface GitHubRepo {
   languages: string[];
   num_commits: number;
   stars: number;
+  forks: number;
+  is_fork: boolean;
+  original_repo: {
+    name: string;
+    full_name: string;
+    owner: string;
+    url: string;
+  } | null;
   readme?: string;
 }
 

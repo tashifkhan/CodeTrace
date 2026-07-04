@@ -22,6 +22,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { PlatformIcon } from '@/components/PlatformIcon'
 import { ShareFab } from '@/components/ShareFab'
 import { ProfileLoader } from '@/components/ProfileLoader'
+import { AppFooter } from '@/components/AppFooter'
 
 const PLATFORM_COLORS: Record<string, string> = {
   github: 'var(--platform-github)',
@@ -1224,13 +1225,14 @@ export function ProfilePage({ usernames: savedUsernames, owner }: ProfilePagePro
           </div>
         </section>
 
-        {/* ── Colophon ──────────────────────────────────────── */}
-        <footer className="mt-16 border-t border-border/50 pt-6 pb-4">
+        {/* ── Colophon + common footer ──────────────────────── */}
+        <div className="mt-16 border-t border-border/50 pt-6">
           <p className="font-mono text-[10px] tracking-[0.18em] text-muted-foreground/40">
             <span className="text-[var(--term-green)]">$</span> compiled --source codetrace --from {loaded.length} platform{loaded.length !== 1 ? 's' : ''}
             <span className="caret" />
           </p>
-        </footer>
+          <AppFooter className="mt-8 pb-4" />
+        </div>
 
       </div>
 
