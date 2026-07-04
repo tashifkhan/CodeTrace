@@ -7,8 +7,12 @@ import { CodeforcesPage } from '@/pages/CodeforcesPage'
 import { GFGPage } from '@/pages/GFGPage'
 import { CodeChefPage } from '@/pages/CodeChefPage'
 import { HackerRankPage } from '@/pages/HackerRankPage'
+import { TUFPage } from '@/pages/TUFPage'
 import { ProfilePage } from '@/pages/ProfilePage'
 import { MarketPage } from '@/pages/MarketPage'
+import { LoginPage } from '@/pages/LoginPage'
+import { OnboardingPage } from '@/pages/OnboardingPage'
+import { PublicProfilePage } from '@/pages/PublicProfilePage'
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -21,6 +25,12 @@ const rootRoute = createRootRoute({
 export const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
+  component: MarketPage,
+})
+
+export const appRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app',
   component: HomePage,
 })
 
@@ -60,28 +70,50 @@ export const hackerrankRoute = createRoute({
   component: HackerRankPage,
 })
 
+export const tufRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/tuf/$username',
+  component: TUFPage,
+})
+
 export const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/profile',
   component: ProfilePage,
 })
 
-export const marketRoute = createRoute({
+export const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/market',
-  component: MarketPage,
+  path: '/login',
+  component: LoginPage,
+})
+
+export const onboardingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/onboarding',
+  component: OnboardingPage,
+})
+
+export const publicProfileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/$profileUsername',
+  component: PublicProfilePage,
 })
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
+  appRoute,
+  loginRoute,
+  onboardingRoute,
   githubRoute,
   leetcodeRoute,
   codeforcesRoute,
   gfgRoute,
   codechefRoute,
   hackerrankRoute,
+  tufRoute,
   profileRoute,
-  marketRoute,
+  publicProfileRoute,
 ])
 
 export const router = createRouter({ routeTree })
