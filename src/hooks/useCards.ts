@@ -8,6 +8,7 @@ import { useQuery, useQueries } from '@tanstack/react-query'
 import type { Platform } from '../types/api'
 import type { UnifiedCard } from '../types/unified'
 import { fetchCard, ALL_PLATFORMS } from '../api/cards'
+import { splitAccounts } from '../lib/utils'
 
 const CARD_STALE_TIME = 45 * 60 * 1000
 
@@ -31,15 +32,16 @@ export interface ProfileCard {
 }
 
 /**
- * Fetch unified cards for every supplied username in parallel.
- * Accepts a partial `{ platform: username }` map (empty values are skipped) and
- * returns one entry per *active* platform, in canonical order.
+ * Fetch unified cards for every supplied account in parallel.
+ * Accepts a partial `{ platform: usernames }` map where each value may hold
+ * several comma-separated accounts; returns one entry per *account*, in
+ * canonical platform order.
  */
 export function useProfileCards(usernames: Partial<Record<Platform, string>>) {
   const active = useMemo(
     () =>
-      ALL_PLATFORMS.filter((p) => usernames[p]?.trim()).map(
-        (p) => ({ platform: p, username: usernames[p]!.trim() }),
+      ALL_PLATFORMS.flatMap((p) =>
+        splitAccounts(usernames[p]).map((username) => ({ platform: p, username })),
       ),
     [usernames],
   )

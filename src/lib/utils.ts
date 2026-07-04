@@ -19,6 +19,13 @@ export function formatDisplayDate(
   return date.toLocaleDateString('en', options)
 }
 
+/** Split a comma-separated account list ("user1, user2") into unique handles.
+ *  Platform query params carry multiple stacked accounts this way. */
+export function splitAccounts(value: string | null | undefined): string[] {
+  if (!value) return []
+  return [...new Set(value.split(',').map((s) => s.trim()).filter(Boolean))]
+}
+
 export function formatDurationShort(seconds: number | null | undefined) {
   if (!seconds || seconds < 0) return '0m'
 
