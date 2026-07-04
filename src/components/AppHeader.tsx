@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import { ArrowLeft, Share2, Check } from 'lucide-react'
+import { ArrowLeft, Share2, Check, LogIn, Link2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 
 interface Props {
@@ -27,6 +28,7 @@ export function AppHeader({
   className,
 }: Props) {
   const [copied, setCopied] = useState(false)
+  const { user } = useAuth()
 
   const handleShare = async () => {
     const url = shareUrl ?? (typeof window !== 'undefined' ? window.location.href : '')
@@ -85,6 +87,32 @@ export function AppHeader({
               {copied ? <Check data-icon="inline-start" /> : <Share2 data-icon="inline-start" />}
               {copied ? 'copied' : 'share'}
             </Button>
+            {/* Auth entry point: account (userid + platform ids) when signed in, login otherwise */}
+            {user ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="font-mono text-xs text-muted-foreground hover:text-primary"
+              >
+                <Link to="/account">
+                  <Link2 data-icon="inline-start" />
+                  account
+                </Link>
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="font-mono text-xs text-muted-foreground hover:text-primary"
+              >
+                <Link to="/login">
+                  <LogIn data-icon="inline-start" />
+                  login
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
       </div>
