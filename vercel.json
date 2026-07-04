@@ -1,0 +1,40 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/api/github/:path*",
+      "destination": "https://github-stats.tashif.codes/:path*"
+    },
+    {
+      "source": "/api/leetcode/:path*",
+      "destination": "https://leetcode-stats.tashif.codes/:path*"
+    },
+    {
+      "source": "/api/codeforces/:path*",
+      "destination": "https://codeforces-stats.tashif.codes/:path*"
+    },
+    {
+      "source": "/api/gfg/:path*",
+      "destination": "https://gfg-stats.tashif.codes/:path*"
+    },
+    {
+      "source": "/api/codechef/:path*",
+      "destination": "https://codechef-stats.tashif.codes/:path*"
+    },
+    {
+      "source": "/api/hackerrank/:path*",
+      "destination": "https://hackerrank-stats.tashif.codes/:path*"
+    },
+    {
+      "source": "/api/tuf/:path*",
+      "destination": "https://tuf-stats.tashif.codes/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
