@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { ArrowLeft, ArrowRight, Link2, LogIn } from 'lucide-react'
+import { ArrowLeft, ArrowRight, LogIn, UserCircle2 } from 'lucide-react'
 import { useQueryStates, parseAsString } from 'nuqs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -8,7 +8,6 @@ import { Link, useNavigate } from '@tanstack/react-router'
 import type { Platform, Usernames } from '../types/api'
 import { splitAccounts } from '../lib/utils'
 import { getMyPublicProfile, savePrimaryProfileConfig, signInWithGoogle } from '../api/savedProfiles'
-import { createShortLink, shortLinkUrl } from '../api/shortLinks'
 import { usernamesToConfig } from '../lib/profileConfig'
 import { useAuth } from '../hooks/useAuth'
 import { SearchBar } from '../components/SearchBar'
@@ -76,32 +75,6 @@ export function HomePage() {
     setQuery(null)
   }
 
-  // One-click short URL for the accounts currently on screen. Signed-out
-  // visitors go through /login and land back on this exact result set.
-  const [shortState, setShortState] = useState<{ loading: boolean; url: string | null; error: string | null }>({
-    loading: false,
-    url: null,
-    error: null,
-  })
-  const handleShortLink = async () => {
-    if (!user) {
-      navigate({
-        to: '/login',
-        search: { next: `${window.location.pathname}${window.location.search}` },
-      })
-      return
-    }
-    setShortState({ loading: true, url: null, error: null })
-    try {
-      const link = await createShortLink({ config: usernamesToConfig(query) })
-      const url = shortLinkUrl(link.code)
-      await navigator.clipboard?.writeText(url).catch(() => undefined)
-      setShortState({ loading: false, url, error: null })
-    } catch (error) {
-      setShortState({ loading: false, url: null, error: error instanceof Error ? error.message : String(error) })
-    }
-  }
-
   const handleSaveProfile = async () => {
     setSaveState({ loading: true, message: null, error: null })
     try {
@@ -155,14 +128,9 @@ export function HomePage() {
             {/* Quiet auth nav above the boot terminal */}
             <nav className="mx-auto mb-4 flex max-w-2xl items-center justify-end gap-4 font-mono text-[11px]">
               {user ? (
-                <>
-                  <Link to="/links" className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-primary">
-                    <Link2 className="size-3" />short urls
-                  </Link>
-                  <Link to="/account" className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-primary">
-                    account
-                  </Link>
-                </>
+                <Link to="/account" className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-primary">
+                  <UserCircle2 className="size-3" />account
+                </Link>
               ) : (
                 <Link to="/login" className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-primary">
                   <LogIn className="size-3" />
@@ -225,17 +193,6 @@ export function HomePage() {
                     <ArrowLeft data-icon="inline-start" />
                     [esc] search
                   </Button>
-                  {/* Mint a /s/<id> short URL for exactly these accounts */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleShortLink}
-                    disabled={shortState.loading}
-                    className="font-mono text-xs text-muted-foreground hover:text-primary"
-                  >
-                    <Link2 data-icon="inline-start" />
-                    {shortState.loading ? 'minting…' : user ? 'shorten' : 'login to shorten'}
-                  </Button>
                   {/* Primary CTA — the unified profile is the point of the app */}
                   <Button
                     asChild
@@ -276,17 +233,6 @@ export function HomePage() {
             {(saveState.message || saveState.error) && (
               <p className={`font-mono text-xs ${saveState.error ? 'text-destructive' : 'text-primary'}`}>
                 {saveState.error ?? saveState.message}
-              </p>
-            )}
-            {(shortState.url || shortState.error) && (
-              <p className={`font-mono text-xs ${shortState.error ? 'text-destructive' : 'text-primary'}`}>
-                {shortState.error ?? (
-                  <>
-                    short url minted &amp; copied: <a href={shortState.url!} className="underline underline-offset-4">{shortState.url}</a>
-                    {' · '}
-                    <Link to="/links" className="text-muted-foreground underline underline-offset-4 hover:text-primary">manage</Link>
-                  </>
-                )}
               </p>
             )}
 

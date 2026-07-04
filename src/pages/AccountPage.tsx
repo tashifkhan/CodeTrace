@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { Link, useNavigate, useRouter, useSearch } from '@tanstack/react-router'
+import { useNavigate, useRouter, useSearch } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
-import { ArrowRight, Check, Copy, ExternalLink, Link2, Loader2, LogOut, Save } from 'lucide-react'
+import { ArrowRight, Check, Copy, ExternalLink, Loader2, LogOut, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -264,15 +264,8 @@ export function AccountPage() {
           </form>
         </section>
 
-        {/* ── Extras ─────────────────────────────────────────── */}
-        <div className="mt-8 flex flex-wrap items-center justify-between gap-3 font-mono text-[11px] text-muted-foreground">
-          <p>
-            {'// '}need throwaway ids too? mint anonymous
-            <Link to="/links" className="mx-1 inline-flex items-center gap-1 underline-offset-4 hover:text-primary hover:underline">
-              <Link2 className="size-3" />short urls
-            </Link>
-            like /s/x7k2p
-          </p>
+        {/* ── Sign out ───────────────────────────────────────── */}
+        <div className="mt-8 flex justify-end">
           <Button
             variant="ghost"
             size="sm"

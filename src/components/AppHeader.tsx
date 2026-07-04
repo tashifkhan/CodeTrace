@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import { ArrowLeft, Share2, Check, LogIn, Link2 } from 'lucide-react'
+import { ArrowLeft, Share2, Check, LogIn, UserCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
@@ -96,7 +96,7 @@ export function AppHeader({
                 className="font-mono text-xs text-muted-foreground hover:text-primary"
               >
                 <Link to="/account">
-                  <Link2 data-icon="inline-start" />
+                  <UserCircle2 data-icon="inline-start" />
                   account
                 </Link>
               </Button>

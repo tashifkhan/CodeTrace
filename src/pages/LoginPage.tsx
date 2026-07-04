@@ -80,8 +80,8 @@ export function LoginPage() {
               Save your trace
             </h1>
             <p className="mt-4 max-w-md font-mono text-sm leading-relaxed text-muted-foreground">
-              Sign in to claim a username, save your stacked accounts, and mint
-              short URLs for your unified profile.
+              Sign in to claim a userid and attach your platform ids to it — one
+              short URL for your whole coding footprint.
             </p>
 
             <div className="mt-8 grid gap-5 sm:grid-cols-3">

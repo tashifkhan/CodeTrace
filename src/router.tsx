@@ -13,8 +13,6 @@ import { MarketPage } from '@/pages/MarketPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { AccountPage } from '@/pages/AccountPage'
 import { PublicProfilePage } from '@/pages/PublicProfilePage'
-import { ShortLinksPage } from '@/pages/ShortLinksPage'
-import { ShortLinkPage } from '@/pages/ShortLinkPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 
 const rootRoute = createRootRoute({
@@ -96,18 +94,6 @@ export const loginRoute = createRoute({
   },
 })
 
-export const shortLinksRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/links',
-  component: ShortLinksPage,
-})
-
-export const shortLinkRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/s/$code',
-  component: ShortLinkPage,
-})
-
 // Where to return after claiming a userid (e.g. the dashboard results the
 // visitor was about to save — including its ?handles query string).
 const accountSearch = (search: Record<string, unknown>): { next?: string } => {
@@ -142,8 +128,6 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   accountRoute,
   onboardingRoute,
-  shortLinksRoute,
-  shortLinkRoute,
   githubRoute,
   leetcodeRoute,
   codeforcesRoute,

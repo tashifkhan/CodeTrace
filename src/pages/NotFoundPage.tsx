@@ -1,13 +1,12 @@
 import { useEffect } from 'react'
 import { Link } from '@tanstack/react-router'
-import { Home, LayoutDashboard, LogIn, Link2, UserCircle2 } from 'lucide-react'
+import { Home, LayoutDashboard, LogIn, UserCircle2 } from 'lucide-react'
 import { AppFooter } from '@/components/AppFooter'
 
 const ROUTES = [
   { to: '/', label: '~/home', hint: 'what codetrace is', icon: Home },
   { to: '/app', label: '~/dashboard', hint: 'stack your accounts', icon: LayoutDashboard },
   { to: '/account', label: '~/account', hint: 'your userid & platform ids', icon: UserCircle2 },
-  { to: '/links', label: '~/links', hint: 'mint short urls', icon: Link2 },
   { to: '/login', label: '~/login', hint: 'save your trace', icon: LogIn },
 ] as const
 
