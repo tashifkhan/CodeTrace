@@ -34,7 +34,7 @@
     },
     {
       "source": "/ph/:path*",
-      "destination": "https://eu.i.posthog.com/:path*"
+      "destination": "/api/ph/:path*"
     },
     {
       "source": "/(.*)",
