@@ -4,13 +4,13 @@ import type { UnifiedEnvelope, UnifiedHeatmap } from '../types/unified'
 const env = import.meta.env
 
 export const PLATFORM_BASE: Record<Platform, string> = {
-  github: env.VITE_GITHUB_API ?? 'https://github-stats.tashif.codes',
-  leetcode: env.VITE_LEETCODE_API ?? 'https://leetcode-stats.tashif.codes',
+  github: env.VITE_GITHUB_API ?? '/api/github',
+  leetcode: env.VITE_LEETCODE_API ?? '/api/leetcode',
   codeforces: env.VITE_CODEFORCES_API ?? '/api/codeforces',
-  gfg: env.VITE_GFG_API ?? 'https://gfg-stats.tashif.codes',
+  gfg: env.VITE_GFG_API ?? '/api/gfg',
   codechef: env.VITE_CODECHEF_API ?? '/api/codechef',
-  hackerrank: env.VITE_HACKERRANK_API ?? 'https://hackerrank-stats-api.vercel.app',
-  tuf: env.VITE_TUF_API ?? 'http://localhost:8007',
+  hackerrank: env.VITE_HACKERRANK_API ?? '/api/hackerrank',
+  tuf: env.VITE_TUF_API ?? '/api/tuf',
 }
 
 export const ALL_PLATFORMS: Platform[] = [
