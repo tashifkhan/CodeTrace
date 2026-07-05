@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useParams } from '@tanstack/react-router'
+import { SeoHead } from '@/components/SeoHead'
 import { ExternalLink } from 'lucide-react'
 import { useCodeforcesDetail, useCodeforcesHeatmap, useUpcomingContests } from '../hooks/usePlatform'
 import { RatingChart } from '../components/RatingChart'
@@ -48,9 +49,7 @@ export function CodeforcesPage() {
   const [heatmapMode, setHeatmapMode] = useState<'all' | 'last_365' | 'year'>('last_365')
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
 
-  useEffect(() => {
-    document.title = `${username} | Codeforces Profile`
-  }, [username])
+
 
   const { data, isLoading, error } = useCodeforcesDetail(username)
 
@@ -71,17 +70,23 @@ export function CodeforcesPage() {
   }
 
   if (isLoading) return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <AppHeader />
-      <div className="mt-6"><DetailSkeleton /></div>
-    </div>
+    <>
+      <SeoHead title={`${username} | Codeforces Profile`} url={`https://codetrace.xyz/codeforces/${username}`} />
+      <div className="mx-auto max-w-5xl px-4 py-8">
+        <AppHeader />
+        <div className="mt-6"><DetailSkeleton /></div>
+      </div>
+    </>
   )
 
   if (error || !data) return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <AppHeader />
-      <ErrorBadge message={(error as Error)?.message ?? 'Failed to load Codeforces stats'} />
-    </div>
+    <>
+      <SeoHead title={`${username} | Codeforces Profile`} url={`https://codetrace.xyz/codeforces/${username}`} />
+      <div className="mx-auto max-w-5xl px-4 py-8">
+        <AppHeader />
+        <ErrorBadge message={(error as Error)?.message ?? 'Failed to load Codeforces stats'} />
+      </div>
+    </>
   )
 
   const ratingHistory = data.ratingHistory ?? data.rating_history ?? []
@@ -98,7 +103,13 @@ export function CodeforcesPage() {
   )
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <>
+      <SeoHead
+        title={`${data.handle} | Codeforces Profile`}
+        description={`Codeforces stats for ${data.handle}: contest rating, rank, and performance history.`}
+        url={`https://codetrace.xyz/codeforces/${data.handle}`}
+      />
+      <div className="mx-auto max-w-5xl px-4 py-8">
       <AppHeader />
 
       <PageHero
@@ -269,5 +280,6 @@ export function CodeforcesPage() {
 
       <AppFooter />
     </div>
+    </>
   )
 }

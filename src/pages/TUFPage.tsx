@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useParams } from '@tanstack/react-router'
+import { SeoHead } from '@/components/SeoHead'
 import { ExternalLink } from 'lucide-react'
 import { useTUFDetail, useTUFHeatmap } from '../hooks/usePlatform'
 import { UniversalHeatmap } from '../components/UniversalHeatmap'
@@ -35,9 +36,7 @@ export function TUFPage() {
   const [heatmapRange, setHeatmapRange] = useState<'all' | 'last_365' | 'year'>('last_365')
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
 
-  useEffect(() => {
-    document.title = `${username} | takeUforward Profile`
-  }, [username])
+
 
   const { data: card, isLoading, error } = useTUFDetail(username)
   const { data: heatmapData } = useTUFHeatmap(username, {
@@ -55,33 +54,39 @@ export function TUFPage() {
   }
 
   if (isLoading) return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <AppHeader />
-      <div className="mt-6"><DetailSkeleton /></div>
-    </div>
+    <>
+      <SeoHead title={`${username} | takeUforward Profile`} url={`https://codetrace.xyz/tuf/${username}`} />
+      <div className="mx-auto max-w-5xl px-4 py-8">
+        <AppHeader />
+        <div className="mt-6"><DetailSkeleton /></div>
+      </div>
+    </>
   )
 
   if (error || !card) return (
-    <div className="mx-auto max-w-5xl px-4 py-8 flex flex-col gap-6">
-      <AppHeader />
-      <Card>
-        <CardContent>
-          <div className="flex flex-col items-center gap-4 py-8 text-center">
-            <PlatformIcon platform="tuf" className="size-12 text-[var(--platform-tuf)] opacity-20" />
-            <h2 className="text-xl font-display font-bold text-foreground">takeUforward Stats Unavailable</h2>
-            <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
-              {(error as Error)?.message ?? 'The TUF API is currently unable to fetch stats for this profile.'}
-            </p>
-            <Button variant="link" size="sm" asChild className="text-primary mt-2">
-              <a href={`https://takeuforward.org/profile/${username}`} target="_blank" rel="noreferrer">
-                View profile on takeUforward
-                <ExternalLink data-icon="inline-end" />
-              </a>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <>
+      <SeoHead title={`${username} | takeUforward Profile`} url={`https://codetrace.xyz/tuf/${username}`} />
+      <div className="mx-auto max-w-5xl px-4 py-8 flex flex-col gap-6">
+        <AppHeader />
+        <Card>
+          <CardContent>
+            <div className="flex flex-col items-center gap-4 py-8 text-center">
+              <PlatformIcon platform="tuf" className="size-12 text-[var(--platform-tuf)] opacity-20" />
+              <h2 className="text-xl font-display font-bold text-foreground">takeUforward Stats Unavailable</h2>
+              <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
+                {(error as Error)?.message ?? 'The TUF API is currently unable to fetch stats for this profile.'}
+              </p>
+              <Button variant="link" size="sm" asChild className="text-primary mt-2">
+                <a href={`https://takeuforward.org/profile/${username}`} target="_blank" rel="noreferrer">
+                  View profile on takeUforward
+                  <ExternalLink data-icon="inline-end" />
+                </a>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </>
   )
 
   const { profile, stats } = card
@@ -115,7 +120,13 @@ export function TUFPage() {
   const subtitleParts = [profile.displayName, profile.institution].filter(Boolean)
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <>
+      <SeoHead
+        title={`${username} | takeUforward Profile`}
+        description={`takeUforward DSA progress for ${username}: sheet completion, topic breakdown, and streak tracking.`}
+        url={`https://codetrace.xyz/tuf/${username}`}
+      />
+      <div className="mx-auto max-w-5xl px-4 py-8">
       <AppHeader />
 
       <PageHero
@@ -265,5 +276,6 @@ export function TUFPage() {
 
       <AppFooter />
     </div>
+    </>
   )
 }

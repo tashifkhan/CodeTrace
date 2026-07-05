@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useRouter, useSearch } from '@tanstack/react-router'
+import { SeoHead } from '@/components/SeoHead'
 import { ArrowLeft, LogIn, Link2, UserCircle2, Share2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AppFooter } from '@/components/AppFooter'
@@ -52,7 +53,9 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col px-4 py-10 md:px-8">
+    <>
+      <SeoHead title="Login — CodeTrace" description="Sign in to claim your userid and save your unified developer footprint." url="https://codetrace.xyz/login" />
+      <div className="flex min-h-screen flex-col px-4 py-10 md:px-8">
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center">
         <nav className="mb-6 font-mono text-[11px]">
           <Link
@@ -137,5 +140,6 @@ export function LoginPage() {
         <AppFooter />
       </div>
     </div>
+    </>
   )
 }

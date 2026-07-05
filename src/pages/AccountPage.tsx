@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate, useRouter, useSearch } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
+import { SeoHead } from '@/components/SeoHead'
 import { ArrowRight, Check, Copy, ExternalLink, Loader2, LogOut, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -147,16 +148,21 @@ export function AccountPage() {
 
   if (isLoading || !user || !loaded) {
     return (
-      <div className="px-4 py-12 md:px-8">
-        <div className="mx-auto max-w-3xl">
-          <Skeleton className="h-72 w-full" />
+      <>
+        <SeoHead title="Account — CodeTrace" />
+        <div className="px-4 py-12 md:px-8">
+          <div className="mx-auto max-w-3xl">
+            <Skeleton className="h-72 w-full" />
+          </div>
         </div>
-      </div>
+      </>
     )
   }
 
   return (
-    <div className="px-4 py-12 md:px-8">
+    <>
+      <SeoHead title="Account — CodeTrace" description="Manage your userid and platform accounts." url="https://codetrace.xyz/account" />
+      <div className="px-4 py-12 md:px-8">
       <div className="mx-auto max-w-3xl">
         <AppHeader backTo="/app" backLabel="dashboard" shareUrl={publicUrl ?? undefined} shareTitle="CodeTrace profile" />
 
@@ -279,5 +285,6 @@ export function AccountPage() {
         <AppFooter />
       </div>
     </div>
+    </>
   )
 }

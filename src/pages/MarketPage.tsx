@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
+import { SeoHead } from '@/components/SeoHead'
 import {
   Copy, Check, ArrowRight, Activity
 } from 'lucide-react'
@@ -31,14 +32,10 @@ export function MarketPage() {
   const [githubUser, setGithubUser] = useState('tashifkhan')
   const [leetcodeUser, setLeetcodeUser] = useState('khan-tashif')
   const [codeforcesUser, setCodeforcesUser] = useState('tourist')
-  
+
   const [copied, setCopied] = useState(false)
 
-  useEffect(() => {
-    document.title = 'CodeTrace | Your Unified Developer Footprint'
-  }, [])
-
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://codetrace.dev'
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://codetrace.xyz'
   const params = new URLSearchParams()
   if (githubUser) params.set('github', githubUser)
   if (leetcodeUser) params.set('leetcode', leetcodeUser)
@@ -52,7 +49,13 @@ export function MarketPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground selection:bg-primary selection:text-background font-sans antialiased overflow-x-hidden">
+    <>
+      <SeoHead
+        title="CodeTrace | Your Unified Developer Footprint"
+        description="Stop pasting six different profile URLs. Aggregate your coding footprints, contest ratings, solved problems, and commit histories from 7 platforms into one sleek dashboard."
+        url="https://codetrace.xyz"
+      />
+      <div className="relative min-h-screen bg-background text-foreground selection:bg-primary selection:text-background font-sans antialiased overflow-x-hidden">
 
       {/* Dynamic Grid Background Overlay */}
       <div aria-hidden className="absolute inset-0 bg-[linear-gradient(to_right,color-mix(in_srgb,var(--color-primary)_11%,transparent)_1px,transparent_1px),linear-gradient(to_bottom,color-mix(in_srgb,var(--color-primary)_11%,transparent)_1px,transparent_1px)] bg-[size:34px_34px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none opacity-50" />
@@ -177,8 +180,8 @@ export function MarketPage() {
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`px-4 py-2 text-[11px] font-mono border-r border-border transition-colors ${
-                    activeTab === tab 
-                      ? 'bg-card text-primary border-t-2 border-t-primary' 
+                    activeTab === tab
+                      ? 'bg-card text-primary border-t-2 border-t-primary'
                       : 'text-muted-foreground hover:text-foreground hover:bg-card/30'
                   }`}
                 >
@@ -268,13 +271,13 @@ export function MarketPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-            
+
             {/* Feature 1: Universal Calendar (8 cols on md) */}
             <div className="md:col-span-8 rounded-xl border border-border bg-card p-6 flex flex-col justify-between space-y-6 relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
                 <Activity className="size-24 text-primary" />
               </div>
-              
+
               <div className="space-y-2">
                 <span className="font-mono text-[10px] text-primary bg-primary/5 border border-primary/20 px-2 py-0.5 rounded">
                   Aggregated Activity
@@ -295,7 +298,7 @@ export function MarketPage() {
                     <span className="flex items-center gap-1"><span className="size-2 bg-[#8c6d58]/60 rounded-sm" /> CodeChef</span>
                   </div>
                 </div>
-                
+
                 {/* Heatmap Layout */}
                 <div className="grid grid-flow-col grid-rows-7 gap-1 overflow-x-auto pb-2 scrollbar-none">
                   {heatmapCells.map((cell, idx) => {
@@ -347,11 +350,11 @@ export function MarketPage() {
                   <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" className="text-border" strokeWidth="0.5" strokeDasharray="2 2" />
                   <circle cx="50" cy="50" r="28" fill="none" stroke="currentColor" className="text-border" strokeWidth="0.5" strokeDasharray="2 2" />
                   <circle cx="50" cy="50" r="16" fill="none" stroke="currentColor" className="text-border" strokeWidth="0.5" strokeDasharray="2 2" />
-                  
+
                   {/* Axes */}
                   <line x1="50" y1="10" x2="50" y2="90" stroke="currentColor" className="text-border" strokeWidth="0.5" />
                   <line x1="10" y1="50" x2="90" y2="50" stroke="currentColor" className="text-border" strokeWidth="0.5" />
-                  
+
                   {/* Skill polygon - Mint Neon fill */}
                   <polygon
                     points="50,22 82,50 50,78 30,50"
@@ -360,7 +363,7 @@ export function MarketPage() {
                     strokeWidth="1.5"
                     className="animate-pulse"
                   />
-                  
+
                   {/* Dots */}
                   <circle cx="50" cy="22" r="2" fill="var(--color-primary)" />
                   <circle cx="82" cy="50" r="2" fill="var(--color-primary)" />
@@ -513,7 +516,7 @@ export function MarketPage() {
                 </>
               )}
             </Button>
-            
+
             <Button
               variant="default"
               size="sm"
@@ -580,5 +583,6 @@ export function MarketPage() {
         </div>
       </footer>
     </div>
+    </>
   )
 }

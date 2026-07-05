@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useParams } from '@tanstack/react-router'
+import { SeoHead } from '@/components/SeoHead'
 import { ExternalLink } from 'lucide-react'
 import { useHackerRankDetail, useHackerRankHeatmap } from '../hooks/usePlatform'
 import { DifficultyMeter } from '../components/DifficultyMeter'
@@ -46,9 +47,7 @@ export function HackerRankPage() {
   const [heatmapView, setHeatmapView] = useState<'all' | 'last_365' | 'year'>('last_365')
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
 
-  useEffect(() => {
-    document.title = `${username} | HackerRank Profile`
-  }, [username])
+
 
   const { data, isLoading, error } = useHackerRankDetail(username)
   const { data: heatmapData } = useHackerRankHeatmap(username, {
@@ -69,17 +68,23 @@ export function HackerRankPage() {
     heatmapView === 'year' ? String(selectedYear) : heatmapView === 'all' ? 'all time' : 'the past year'
 
   if (isLoading) return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <AppHeader />
-      <div className="mt-6"><DetailSkeleton /></div>
-    </div>
+    <>
+      <SeoHead title={`${username} | HackerRank Profile`} url={`https://codetrace.xyz/hackerrank/${username}`} />
+      <div className="mx-auto max-w-5xl px-4 py-8">
+        <AppHeader />
+        <div className="mt-6"><DetailSkeleton /></div>
+      </div>
+    </>
   )
 
   if (error || !data) return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <AppHeader />
-      <ErrorBadge message={(error as Error)?.message ?? 'Failed to load HackerRank stats'} />
-    </div>
+    <>
+      <SeoHead title={`${username} | HackerRank Profile`} url={`https://codetrace.xyz/hackerrank/${username}`} />
+      <div className="mx-auto max-w-5xl px-4 py-8">
+        <AppHeader />
+        <ErrorBadge message={(error as Error)?.message ?? 'Failed to load HackerRank stats'} />
+      </div>
+    </>
   )
 
   const { contestInfo } = data
@@ -124,7 +129,13 @@ export function HackerRankPage() {
   )
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <>
+      <SeoHead
+        title={`${username} | HackerRank Profile`}
+        description={`HackerRank stats for ${username}: badges, certifications, and solved problems.`}
+        url={`https://codetrace.xyz/hackerrank/${username}`}
+      />
+      <div className="mx-auto max-w-5xl px-4 py-8">
       <AppHeader />
 
       <PageHero
@@ -387,5 +398,6 @@ export function HackerRankPage() {
 
       <AppFooter />
     </div>
+    </>
   )
 }

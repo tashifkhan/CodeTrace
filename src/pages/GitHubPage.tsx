@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
 import { useParams } from '@tanstack/react-router'
+import { SeoHead } from '@/components/SeoHead'
 import { ExternalLink, Star, GitFork } from 'lucide-react'
 import { useGitHubDetail } from '../hooks/usePlatform'
 import { LanguageBar } from '../components/LanguageBar'
@@ -21,24 +21,26 @@ const ACCENT = PLATFORM_ACCENT.github
 export function GitHubPage() {
   const { username } = useParams({ from: '/github/$username' })
 
-  useEffect(() => {
-    document.title = `${username} | GitHub Profile`
-  }, [username])
-
   const { data, isLoading, error } = useGitHubDetail(username)
 
   if (isLoading) return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <AppHeader />
-      <div className="mt-6"><DetailSkeleton /></div>
-    </div>
+    <>
+      <SeoHead title={`${username} | GitHub Profile`} url={`https://codetrace.xyz/github/${username}`} />
+      <div className="mx-auto max-w-5xl px-4 py-8">
+        <AppHeader />
+        <div className="mt-6"><DetailSkeleton /></div>
+      </div>
+    </>
   )
 
   if (error || !data) return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <AppHeader />
-      <ErrorBadge message={(error as Error)?.message ?? 'Failed to load GitHub stats'} />
-    </div>
+    <>
+      <SeoHead title={`${username} | GitHub Profile`} url={`https://codetrace.xyz/github/${username}`} />
+      <div className="mx-auto max-w-5xl px-4 py-8">
+        <AppHeader />
+        <ErrorBadge message={(error as Error)?.message ?? 'Failed to load GitHub stats'} />
+      </div>
+    </>
   )
 
   const { stats, pinned, stars, prs, orgContributions, profileViews, profile, heatmap, contributions } = data
@@ -51,7 +53,13 @@ export function GitHubPage() {
   ) : undefined
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <>
+      <SeoHead
+        title={`${username} | GitHub Profile`}
+        description={`GitHub stats for ${username}: repositories, contributions, stars, and more.`}
+        url={`https://codetrace.xyz/github/${username}`}
+      />
+      <div className="mx-auto max-w-5xl px-4 py-8">
       <AppHeader />
 
       <PageHero
@@ -235,5 +243,6 @@ export function GitHubPage() {
 
       <AppFooter />
     </div>
+    </>
   )
 }

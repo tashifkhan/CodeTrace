@@ -1,4 +1,5 @@
 import { useMemo, useState, useRef, useEffect, cloneElement } from 'react'
+import { SeoHead } from '@/components/SeoHead'
 import { useQueryStates, parseAsString } from 'nuqs'
 import { useQuery } from '@tanstack/react-query'
 import { ActivityCalendar, type Activity } from 'react-activity-calendar'
@@ -524,11 +525,6 @@ export function ProfilePage({ usernames: savedUsernames, owner }: ProfilePagePro
     activeHandles[0]?.[1] || 'Coder'
   const institution = loaded.find((c) => c.profile.institution)?.profile.institution ?? null
 
-  useEffect(() => {
-    document.title = `${profileName} — CodeTrace`
-    return () => { document.title = 'CodeTrace' }
-  }, [profileName])
-
   // ── Share ────────────────────────────────────────────────────
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -573,7 +569,9 @@ export function ProfilePage({ usernames: savedUsernames, owner }: ProfilePagePro
 
   if (activeCount === 0) {
     return (
-      <div className="fade-in flex min-h-[60vh] items-center justify-center px-5">
+      <>
+        <SeoHead title="Profile — CodeTrace" url="https://codetrace.xyz/profile" />
+        <div className="fade-in flex min-h-[60vh] items-center justify-center px-5">
         <div className="term-window scanlines w-full max-w-md">
           <div className="term-bar">
             <span className="term-dot" style={{ background: 'var(--term-red)' }} />
@@ -592,11 +590,19 @@ export function ProfilePage({ usernames: savedUsernames, owner }: ProfilePagePro
           </div>
         </div>
       </div>
+      </>
     )
   }
 
   return (
-    <div className="fade-in px-5 py-10 md:px-8 md:py-14">
+    <>
+      <SeoHead
+        title={`${profileName} — CodeTrace`}
+        description={`Unified developer profile for ${profileName} — coding stats across GitHub, LeetCode, Codeforces, and more.`}
+        url="https://codetrace.xyz/profile"
+        type="profile"
+      />
+      <div className="fade-in px-5 py-10 md:px-8 md:py-14">
       <div className="mx-auto max-w-4xl">
 
         {/* ── Top bar ───────────────────────────────────────── */}
@@ -1296,5 +1302,6 @@ export function ProfilePage({ usernames: savedUsernames, owner }: ProfilePagePro
         />
       )}
     </div>
+    </>
   )
 }

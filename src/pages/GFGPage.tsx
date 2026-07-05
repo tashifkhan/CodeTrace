@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useParams } from '@tanstack/react-router'
+import { SeoHead } from '@/components/SeoHead'
 import { ExternalLink } from 'lucide-react'
 import { useGFGStats, useGFGProfile, useGFGHeatmap } from '../hooks/usePlatform'
 import { UniversalHeatmap } from '../components/UniversalHeatmap'
@@ -38,9 +39,7 @@ export function GFGPage() {
   const [heatmapRange, setHeatmapRange] = useState<'all' | 'last_365' | 'year'>('last_365')
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
 
-  useEffect(() => {
-    document.title = `${username} | GeeksForGeeks Profile`
-  }, [username])
+
 
   const { data: stats, isLoading: statsLoading, error: statsError } = useGFGStats(username)
   const { data: profile, isLoading: profileLoading } = useGFGProfile(username)
@@ -61,37 +60,43 @@ export function GFGPage() {
   const isLoading = statsLoading || profileLoading
 
   if (isLoading) return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <AppHeader />
-      <div className="mt-6"><DetailSkeleton /></div>
-    </div>
+    <>
+      <SeoHead title={`${username} | GeeksForGeeks Profile`} url={`https://codetrace.xyz/gfg/${username}`} />
+      <div className="mx-auto max-w-5xl px-4 py-8">
+        <AppHeader />
+        <div className="mt-6"><DetailSkeleton /></div>
+      </div>
+    </>
   )
 
   if (statsError || !stats) return (
-    <div className="mx-auto max-w-5xl px-4 py-8 flex flex-col gap-6">
-      <AppHeader />
-      <Card>
-        <CardContent>
-          <div className="flex flex-col items-center gap-4 py-8 text-center">
-            <PlatformIcon platform="gfg" className="size-12 text-[var(--platform-gfg)] opacity-20" />
-            <h2 className="text-xl font-display font-bold text-foreground">GeeksForGeeks Stats Unavailable</h2>
-            <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
-              {(statsError as Error)?.message ?? 'GFG API is currently unable to fetch stats — GeeksForGeeks recently changed their page structure.'}
-            </p>
-            <Button variant="link" size="sm" asChild className="text-primary mt-2">
-              <a
-                href={`https://auth.geeksforgeeks.org/user/${username}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                View profile on GeeksForGeeks
-                <ExternalLink data-icon="inline-end" />
-              </a>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <>
+      <SeoHead title={`${username} | GeeksForGeeks Profile`} url={`https://codetrace.xyz/gfg/${username}`} />
+      <div className="mx-auto max-w-5xl px-4 py-8 flex flex-col gap-6">
+        <AppHeader />
+        <Card>
+          <CardContent>
+            <div className="flex flex-col items-center gap-4 py-8 text-center">
+              <PlatformIcon platform="gfg" className="size-12 text-[var(--platform-gfg)] opacity-20" />
+              <h2 className="text-xl font-display font-bold text-foreground">GeeksForGeeks Stats Unavailable</h2>
+              <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
+                {(statsError as Error)?.message ?? 'GFG API is currently unable to fetch stats — GeeksForGeeks recently changed their page structure.'}
+              </p>
+              <Button variant="link" size="sm" asChild className="text-primary mt-2">
+                <a
+                  href={`https://auth.geeksforgeeks.org/user/${username}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  View profile on GeeksForGeeks
+                  <ExternalLink data-icon="inline-end" />
+                </a>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </>
   )
 
   const heatmapCalendar: Record<string, number> = {}
@@ -108,7 +113,13 @@ export function GFGPage() {
       : 'the last 365 days'
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <>
+      <SeoHead
+        title={`${username} | GeeksForGeeks Profile`}
+        description={`GeeksForGeeks stats for ${username}: problems solved, coding score, and DSA progress.`}
+        url={`https://codetrace.xyz/gfg/${username}`}
+      />
+      <div className="mx-auto max-w-5xl px-4 py-8">
       <AppHeader />
 
       <PageHero
@@ -207,5 +218,6 @@ export function GFGPage() {
 
       <AppFooter />
     </div>
+    </>
   )
 }

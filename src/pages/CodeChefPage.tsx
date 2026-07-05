@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useParams } from '@tanstack/react-router'
+import { SeoHead } from '@/components/SeoHead'
 import { useCodeChefStats, useCodeChefRating, useCodeChefHeatmap } from '../hooks/usePlatform'
 import { UniversalHeatmap } from '../components/UniversalHeatmap'
 import { RatingChart } from '../components/RatingChart'
@@ -31,9 +32,7 @@ export function CodeChefPage() {
   const [heatmapView, setHeatmapView] = useState<'all' | 'last_365' | 'year'>('last_365')
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
 
-  useEffect(() => {
-    document.title = `${username} | CodeChef Profile`
-  }, [username])
+
 
   const { data: profileData, isLoading: profileLoading, error: profileError } = useCodeChefStats(username)
   const { data: ratingData, isLoading: ratingLoading, error: ratingError } = useCodeChefRating(username)
@@ -54,17 +53,25 @@ export function CodeChefPage() {
   const isLoading = profileLoading || ratingLoading || heatmapLoading
 
   if (isLoading) return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <AppHeader />
-      <div className="mt-6"><DetailSkeleton /></div>
-    </div>
+    <>
+      <SeoHead title={`${username} | CodeChef Profile`} url={`https://codetrace.xyz/codechef/${username}`} />
+      <div className="mx-auto max-w-5xl px-4 py-8">
+        <AppHeader />
+        <div className="mt-6"><DetailSkeleton /></div>
+      </div>
+    </>
   )
 
-  if (profileError || ratingError || heatmapError || !profileData || !ratingData || !heatmapData) return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <AppHeader />
-      <ErrorBadge message={(profileError as Error)?.message ?? (ratingError as Error)?.message ?? (heatmapError as Error)?.message ?? 'Failed to load CodeChef stats'} />
-    </div>
+  const allErrors = profileError || ratingError || heatmapError
+
+  if (allErrors || !profileData || !ratingData || !heatmapData) return (
+    <>
+      <SeoHead title={`${username} | CodeChef Profile`} url={`https://codetrace.xyz/codechef/${username}`} />
+      <div className="mx-auto max-w-5xl px-4 py-8">
+        <AppHeader />
+        <ErrorBadge message={(allErrors as Error)?.message ?? 'Failed to load CodeChef stats'} />
+      </div>
+    </>
   )
 
   const profile = profileData.profile
@@ -134,7 +141,13 @@ export function CodeChefPage() {
   )
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <>
+      <SeoHead
+        title={`${profileData.handle} | CodeChef Profile`}
+        description={`CodeChef stats for ${profileData.handle}: rating, contests, and performance.`}
+        url={`https://codetrace.xyz/codechef/${profileData.handle}`}
+      />
+      <div className="mx-auto max-w-5xl px-4 py-8">
       <AppHeader />
 
       <PageHero
@@ -349,5 +362,6 @@ export function CodeChefPage() {
 
       <AppFooter />
     </div>
+    </>
   )
 }

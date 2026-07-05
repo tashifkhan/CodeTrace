@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { ArrowLeft, ArrowRight, Link2, LogIn, UserCircle2 } from 'lucide-react'
+import { SeoHead } from '@/components/SeoHead'
 import { useQueryStates, parseAsString } from 'nuqs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -122,12 +123,14 @@ export function HomePage() {
     return null
   }, [saveState.error, saveState.message])
 
-  useEffect(() => {
-    document.title = 'CodeTrace'
-  }, [])
-
   return (
-    <div className="px-4 py-12 md:px-8">
+    <>
+      <SeoHead
+        title="CodeTrace"
+        description="Track your coding footprint across GitHub, LeetCode, Codeforces, GFG, CodeChef, HackerRank &amp; takeUforward."
+        url="https://codetrace.xyz/app"
+      />
+      <div className="px-4 py-12 md:px-8">
       <div className="mx-auto max-w-5xl">
 
         {/* Header — a boot-sequence terminal on the landing view, a compact
@@ -304,5 +307,6 @@ export function HomePage() {
         )}
       </div>
     </div>
+    </>
   )
 }

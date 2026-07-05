@@ -1,7 +1,7 @@
 import { Link, useParams } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
+import { SeoHead } from '@/components/SeoHead'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AppFooter } from '@/components/AppFooter'
 import { getPublicProfileByUsername } from '@/api/savedProfiles'
 import { isSupabaseConfigured } from '@/lib/supabase'
@@ -20,13 +20,33 @@ export function PublicProfilePage() {
   })
 
   if (!isSupabaseConfigured) {
-    return <ProfileState title="Saved profiles are not configured" description="Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable public profile URLs." />
+    return <ProfileState
+      title="Saved profiles are not configured"
+      description="Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable public profile URLs."
+      variant="info"
+    />
   }
 
-  if (isLoading) return <ProfileState title={`Loading @${profileUsername}`} description="Fetching saved account configuration." />
-  if (error) return <ProfileState title="Profile failed to load" description={(error as Error).message} />
-  // No such handle — this route catches every unknown single-segment path,
-  // so this *is* the app's 404 for stray URLs.
+  if (isLoading) return (
+    <>
+      <SeoHead title={`@${profileUsername} — CodeTrace`} url={`https://codetrace.xyz/${profileUsername}`} />
+      <ProfileState
+        title={`Loading @${profileUsername}`}
+        description="Fetching saved account configuration."
+        variant="loading"
+      />
+    </>
+  )
+  if (error) return (
+    <>
+      <SeoHead title={`@${profileUsername} — CodeTrace`} url={`https://codetrace.xyz/${profileUsername}`} />
+      <ProfileState
+        title="Profile failed to load"
+        description={(error as Error).message}
+        variant="error"
+      />
+    </>
+  )
   if (!data) return <NotFoundPage />
 
   // Handle claimed, but no accounts saved yet: guide the owner to finish
@@ -36,12 +56,19 @@ export function PublicProfilePage() {
     return <EmptyProfileState username={data.username} isOwner={isOwner} />
   }
 
-  return <ProfilePage usernames={configToUsernames(data.config)} owner={data} />
+  return (
+    <>
+      <SeoHead title={`${data.username} — CodeTrace`} description={`Unified developer profile for ${data.username} — coding stats across all platforms.`} url={`https://codetrace.xyz/${data.username}`} type="profile" />
+      <ProfilePage usernames={configToUsernames(data.config)} owner={data} />
+    </>
+  )
 }
 
 function EmptyProfileState({ username, isOwner }: { username: string; isOwner: boolean }) {
   return (
-    <div className="flex min-h-screen flex-col px-4 py-10">
+    <>
+      <SeoHead title={`${username} — CodeTrace`} url={`https://codetrace.xyz/${username}`} />
+      <div className="flex min-h-screen flex-col px-4 py-10">
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
         <div className="term-window scanlines">
           <div className="term-bar">
@@ -88,21 +115,88 @@ function EmptyProfileState({ username, isOwner }: { username: string; isOwner: b
         <AppFooter />
       </div>
     </div>
+    </>
   )
 }
 
-function ProfileState({ title, description }: { title: string; description: string }) {
+function ProfileState({
+  title,
+  description,
+  variant = 'info',
+}: {
+  title: string
+  description: string
+  variant?: 'info' | 'loading' | 'error'
+}) {
+  const isLoading = variant === 'loading'
+  const isError = variant === 'error'
+  const statusColor = isError ? 'text-[var(--term-red)]' : 'text-[var(--term-amber)]'
+  const statusPrefix = isError ? 'error:' : 'status:'
+  const command = isLoading ? 'fetch_profile' : isError ? 'cat profile.log' : 'status'
+  const windowLabel = isLoading ? '~/profile — loading' : isError ? '~/profile — error' : '~/profile'
+
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-md border-border/70 bg-card/60">
-        <CardHeader>
-          <CardTitle className="font-display text-3xl">{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button asChild><a href="/app">Open CodeTrace</a></Button>
-        </CardContent>
-      </Card>
+    <div className="flex min-h-screen flex-col px-4 py-10">
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
+        <div className="term-window scanlines rise-in">
+          <div className="term-bar">
+            <span className="term-dot" style={{ background: 'var(--term-red)' }} />
+            <span className="term-dot" style={{ background: 'var(--term-amber)' }} />
+            <span className="term-dot" style={{ background: 'var(--term-green)' }} />
+            <span className="ml-2 truncate font-mono text-[11px] text-muted-foreground/80">{windowLabel}</span>
+          </div>
+
+          <div className="crt-grid px-7 py-9">
+            <h1 className={`glow-text font-pixel text-2xl leading-tight ${isError ? 'text-[var(--term-red)]' : 'text-foreground'}`}>
+              {title}
+            </h1>
+
+            <p className="mt-4 font-mono text-sm text-muted-foreground">
+              <span className="text-[var(--term-green)]">$</span> {command}
+              {isLoading && <span className="caret" />}
+            </p>
+            <p className={`break-words font-mono text-sm ${statusColor}`}>
+              {statusPrefix} {description}
+            </p>
+
+            {isLoading && (
+              <div className="mt-5">
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted/60">
+                  <div
+                    className="h-full w-2/5 animate-[shimmer_1.5s_infinite] rounded-full bg-[var(--term-green)]"
+                    style={{
+                      backgroundImage:
+                        'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.35) 50%, transparent 100%)',
+                      backgroundSize: '200% 100%',
+                    }}
+                  />
+                </div>
+                <p className="mt-2 font-mono text-[11px] text-muted-foreground/60">
+                  waiting for supabase response...
+                </p>
+              </div>
+            )}
+
+            {isError && (
+              <p className="mt-5 font-mono text-xs leading-relaxed text-muted-foreground">
+                The profile server returned an error. You can return to the dashboard or try refreshing this page.
+              </p>
+            )}
+
+            <div className="mt-6 flex flex-wrap gap-2">
+              <Button asChild variant="outline" className="rounded-md font-mono text-xs">
+                <Link to="/app">cd ~/dashboard</Link>
+              </Button>
+              {isError && (
+                <Button className="rounded-md font-mono text-xs" onClick={() => window.location.reload()}>
+                  retry
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+        <AppFooter />
+      </div>
     </div>
   )
 }

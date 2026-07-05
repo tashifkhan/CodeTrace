@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useParams } from '@tanstack/react-router'
+import { SeoHead } from '@/components/SeoHead'
 import { ExternalLink } from 'lucide-react'
 import { useLeetCodeDetail, useLeetCodeHeatmap } from '../hooks/usePlatform'
 import { DifficultyMeter } from '../components/DifficultyMeter'
@@ -34,9 +35,7 @@ export function LeetCodePage() {
   const [heatmapView, setHeatmapView] = useState<'all' | 'last_365' | 'year'>('last_365')
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
 
-  useEffect(() => {
-    document.title = `${username} | LeetCode Profile`
-  }, [username])
+
 
   const { data, isLoading, error } = useLeetCodeDetail(username)
   const { data: heatmapData } = useLeetCodeHeatmap(username, {
@@ -57,17 +56,23 @@ export function LeetCodePage() {
     heatmapView === 'year' ? String(selectedYear) : heatmapView === 'all' ? 'all time' : 'the past year'
 
   if (isLoading) return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <AppHeader />
-      <div className="mt-6"><DetailSkeleton /></div>
-    </div>
+    <>
+      <SeoHead title={`${username} | LeetCode Profile`} url={`https://codetrace.xyz/leetcode/${username}`} />
+      <div className="mx-auto max-w-5xl px-4 py-8">
+        <AppHeader />
+        <div className="mt-6"><DetailSkeleton /></div>
+      </div>
+    </>
   )
 
   if (error || !data) return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <AppHeader />
-      <ErrorBadge message={(error as Error)?.message ?? 'Failed to load LeetCode stats'} />
-    </div>
+    <>
+      <SeoHead title={`${username} | LeetCode Profile`} url={`https://codetrace.xyz/leetcode/${username}`} />
+      <div className="mx-auto max-w-5xl px-4 py-8">
+        <AppHeader />
+        <ErrorBadge message={(error as Error)?.message ?? 'Failed to load LeetCode stats'} />
+      </div>
+    </>
   )
 
   const { contestInfo } = data
@@ -116,7 +121,13 @@ export function LeetCodePage() {
   )
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <>
+      <SeoHead
+        title={`${username} | LeetCode Profile`}
+        description={`LeetCode stats for ${username}: problems solved, contest rating, and submission activity.`}
+        url={`https://codetrace.xyz/leetcode/${username}`}
+      />
+      <div className="mx-auto max-w-5xl px-4 py-8">
       <AppHeader />
 
       <PageHero
@@ -374,5 +385,6 @@ export function LeetCodePage() {
 
       <AppFooter />
     </div>
+    </>
   )
 }

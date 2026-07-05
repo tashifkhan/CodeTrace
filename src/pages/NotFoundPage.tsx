@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
 import { Link } from '@tanstack/react-router'
+import { SeoHead } from '@/components/SeoHead'
 import { Home, LayoutDashboard, LogIn, UserCircle2 } from 'lucide-react'
 import { AppFooter } from '@/components/AppFooter'
 
@@ -13,15 +13,13 @@ const ROUTES = [
 /** Router-level 404 — any path that matches no route (and no public profile
  *  handle resolution) lands here. */
 export function NotFoundPage() {
-  useEffect(() => {
-    document.title = '404 — CodeTrace'
-    return () => { document.title = 'CodeTrace' }
-  }, [])
 
   const path = typeof window !== 'undefined' ? window.location.pathname : '/…'
 
   return (
-    <div className="flex min-h-screen flex-col px-4 py-10 md:px-8">
+    <>
+      <SeoHead title="404 — CodeTrace" description="Page not found" />
+      <div className="flex min-h-screen flex-col px-4 py-10 md:px-8">
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center">
         <div className="term-window scanlines rise-in">
           <div className="term-bar">
@@ -73,5 +71,6 @@ export function NotFoundPage() {
         <AppFooter />
       </div>
     </div>
+    </>
   )
 }
