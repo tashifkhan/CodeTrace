@@ -1,17 +1,16 @@
 const POSTHOG_HOST = 'https://eu.i.posthog.com'
 
 async function readBody(req) {
-  if (req.body !== undefined) {
-    return typeof req.body === 'string' || Buffer.isBuffer(req.body)
-      ? req.body
-      : JSON.stringify(req.body)
-  }
-
   const chunks = []
   for await (const chunk of req) {
     chunks.push(chunk)
   }
   return Buffer.concat(chunks)
+}
+
+function getPath(req, url) {
+  const queryPath = req.query?.path ?? url.searchParams.get('path') ?? ''
+  return Array.isArray(queryPath) ? queryPath.join('/') : queryPath
 }
 
 export default async function handler(req, res) {
@@ -21,7 +20,9 @@ export default async function handler(req, res) {
   }
 
   const incomingUrl = new URL(req.url || '/', 'https://codetrace.tashif.codes')
-  const posthogPath = incomingUrl.pathname.replace(/^\/(api\/)?ph\/?/, '')
+  const posthogPath = getPath(req, incomingUrl).replace(/^\/+/, '')
+  incomingUrl.searchParams.delete('path')
+
   const upstreamUrl = `${POSTHOG_HOST}/${posthogPath}${incomingUrl.search}`
   const headers = new Headers()
 
@@ -46,4 +47,10 @@ export default async function handler(req, res) {
 
   const body = Buffer.from(await upstream.arrayBuffer())
   res.end(body)
+}
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
 }
